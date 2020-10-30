@@ -9,7 +9,7 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, camera, renderer, cube, model, INTERSECTED, mouse, mouseDown, mouseUp;
+let scene, camera, renderer, cube, model, INTERSECTED, mouse, mouseDown, mouseSound;
 
 //On mouse event
 const raycaster = new THREE.Raycaster();
@@ -24,7 +24,23 @@ function init(){
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
     // camera.updateProjectionMatrix();
 
-    
+    // create an AudioListener and add it to the camera
+    const listener = new THREE.AudioListener();
+    camera.add( listener );
+
+    // create a global audio source
+    const sound = new THREE.Audio( listener );
+
+    // load a sound and set it as the Audio object's buffer
+    const audioLoader = new THREE.AudioLoader();
+    //remember to credit audio!
+    audioLoader.load( 'audio/Enceladus-Hiss.mp3', function( buffer ) {
+        sound.setBuffer( buffer );
+        sound.setLoop( true );
+        sound.setVolume( 0.03 );
+        sound.play();
+    });
+        
 
     renderer = new THREE.WebGLRenderer({antialias: true});
     // renderer.setClearColor('red');
@@ -33,14 +49,12 @@ function init(){
     renderer.outputEncoding = THREE.sRGBEncoding;
 
 
-   document.body.appendChild(renderer.domElement);
+     document.body.appendChild(renderer.domElement);
 
  
 // Controls
  controls = new OrbitControls(camera, renderer.domElement );
-    
-     
-
+       
 
 // Geometry created
     const geometry = new THREE.BoxGeometry();
@@ -52,7 +66,6 @@ function init(){
     scene.add(cube);
 
     
-
 
     //Light
     const light = new THREE.PointLight(0xFFFFFF, 1, 500);
@@ -74,38 +87,47 @@ function init(){
 
     } );
 
+    // model audio
+    mouseSound = new THREE.PositionalAudio( listener );
+    audioLoader.load( 'Audio/NASA_sun_sonification.wav', function (buffer) {
+        mouseSound.setBuffer(buffer);
+        mouseSound.setRefDistance(5);
 
-// mouse controls
-
-function onMouseMove( event ) {
-
-	// calculate mouse position in normalized device coordinates
-    // (-1 to +1) for both components
-    event.preventDefault();
-
-	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;   
-    console.log(event.buttons);
-}
-
-function onMouseDown( event ) {
-
-    event.preventDefault();
+        //add audio to gltf mesh
+        mouseSound.play();
+    });
     
-    mouseDown = true;
-    console.log('mouse is down');	 
-}
+    // mouse controls
 
-function onMouseUp( event ) {
+    function onMouseMove( event ) {
 
-    event.preventDefault();
-    mouseDown = false;
-    console.log('mouse is up');	
-}
+        // calculate mouse position in normalized device coordinates
+        // (-1 to +1) for both components
+        event.preventDefault();
 
-window.addEventListener( 'mousemove', onMouseMove, false );
-window.addEventListener( 'mousedown', onMouseDown, false );
-window.addEventListener( 'mouseup', onMouseUp, false );
+        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;   
+        console.log(event.buttons);
+    }
+
+    function onMouseDown( event ) {
+
+        event.preventDefault();
+        
+        mouseDown = true;
+        console.log('mouse is down');	 
+    }
+
+    function onMouseUp( event ) {
+
+        event.preventDefault();
+        mouseDown = false;
+        console.log('mouse is up');	
+    }
+
+    window.addEventListener( 'mousemove', onMouseMove, false );
+    window.addEventListener( 'mousedown', onMouseDown, false );
+    window.addEventListener( 'mouseup', onMouseUp, false );
 
 };
 
@@ -126,12 +148,15 @@ window.addEventListener('resize', onWindowResize, false);
 const animate = function animate () { 
     requestAnimationFrame(animate);
     if (model){
-        model.rotation.x += 0.01;
-        model.rotation.y += 0.01;
+        model.rotation.x += 0.001;
+        model.rotation.y += 0.001;
+        model.add(mouseSound);
     } else {
         console.log('model not loaded');
     }
     
+    
+
     // update the picking ray with the camera and mouse position
 	raycaster.setFromCamera( mouse, camera );
 
