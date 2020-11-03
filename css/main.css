@@ -12,6 +12,30 @@ div, .overlay {
     position: absolute;
     width: 100%;
     height: 100%;
-    background: red;
+    /* background: red; */
 
+}
+
+button, .button {
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 30%;
+    background-color: green;
+    width:50%;
+    text-align: center;
+    display: block;
+    
+
+}
+
+#caption-display{
+    /* background-color: white; */
+    color: red;
+    width: 20%;
+    height: 10%;
+    margin-left: 40%;
+    margin-top: 42%;
+    position: absolute;
+    text-align: center;
+    display: block;
 }
