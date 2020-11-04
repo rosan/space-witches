@@ -9,10 +9,19 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, camera, renderer, cube, mouseModel, mouse, mouseDown, mouseSound, mouseSpeech, controls;
+let scene, camera, renderer, cube,  mouse, mouseDown, mouseMove, mouseClick, mouseOver, mouseSound, mouseSpeech, controls ;
+
+let zombieMouse = {
+    gltfScene: null,
+    mesh: null,
+    material: null,
+    hoverTexture: null,
+    hoverMaterial: null,
+}
 
 const raycaster = new THREE.Raycaster();
 mouse = new THREE.Vector2(1,1);
+
 
 //make overlay div
 const overlay = document.createElement("div");
@@ -85,8 +94,6 @@ function init(){
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
     
 
- 
-
     renderer = new THREE.WebGLRenderer({antialias: true});
     // renderer.setClearColor('red');
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -141,15 +148,24 @@ function init(){
     // Loading in the model
     const loader = new GLTFLoader();
     loader.load('models/mouse-rough-v2.gltf', function (gltf) {
+        zombieMouse.gltfScene = gltf.scene;
+
         scene.add(gltf.scene);
-        mouseModel = gltf.scene;
-        
+        console.log(gltf.scene);
+
+        zombieMouse.mesh = zombieMouse.gltfScene.children.filter(function(m){return m.name=='prelim-mouse-blender-3'});
+        zombieMouse.material = zombieMouse.mesh[0].material;
+
 
     }, undefined, function ( error ) {
 
         console.error( error );
 
     } );
+
+    zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg')
+    zombieMouse.hoverMaterial = new THREE.MeshLambertMaterial({map: zombieMouse.hoverTexture});
+
 
     
     // Mousemodel ambient audio
@@ -171,44 +187,51 @@ function init(){
     // mouse controls
     function onMouseMove( event ) {
 
-        event.preventDefault();
 
         // calculate mouse position in normalized device coordinates
         // (-1 to +1) for both components
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;   
         console.log(event.buttons);
+
+        
     }
 
-    function onMouseDown( event ) {
-
-        event.preventDefault();
-        
+    function onMouseDown( event ) {     
         mouseDown = true;
         console.log('mouse is down');	 
     }
 
     function onMouseUp( event ) {
-
-        event.preventDefault();
         mouseDown = false;
         console.log('mouse is up');	
     }
 
+    function onMouseOver( event ){
+        mouseOver = true;
+        console.log('mouse is over');	
+    }
 
+    function onMouseOut( event ){
+        mouseOver = false;
+        console.log('mouse is out');	
+    }
+
+    function onMouseClick ( event ){
+        mouseClick = true;
+        console.log('mouse click');	
+    }
 
 
     window.addEventListener( 'mousemove', onMouseMove, false );
-    window.addEventListener( 'mousedown', onMouseDown, false );
-    window.addEventListener( 'mouseup', onMouseUp, false );
+    // window.addEventListener( 'mousedown', onMouseDown, false );
+    // window.addEventListener( 'mouseup', onMouseUp, false );
+    window.addEventListener( 'mouseover', onMouseOver, false );
+    window.addEventListener( 'mouseout', onMouseOut, false );
+    window.addEventListener( 'click', onMouseClick, false );
 
-
-
-
-};
-
-//resize canvas with window
-function onWindowResize(){
+    //resize canvas with window
+    function onWindowResize(){
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -216,52 +239,59 @@ function onWindowResize(){
 
 };
 
-window.addEventListener('resize', onWindowResize, false);
+    window.addEventListener('resize', onWindowResize, false);
+
+
+
+};
+
+
 
 
 
 const animate = function animate () { 
     requestAnimationFrame(animate);
-    if (mouseModel){
-        mouseModel.rotation.x += 0.001;
-        mouseModel.rotation.y += 0.001;
-        mouseModel.add(mouseSound);
-        mouseModel.add(mouseSpeech);
-    } else {
-        console.log('model not loaded');
-    }
+    if(!zombieMouse.gltfScene){return;}
+    
+    zombieMouse.gltfScene.rotation.x += 0.001;
+    zombieMouse.gltfScene.rotation.y += 0.001;
+    zombieMouse.gltfScene.add(mouseSound);
+    zombieMouse.gltfScene.add(mouseSpeech);
+
 
     // update the picking ray with the camera and mouse position
 	raycaster.setFromCamera( mouse, camera );
 
-	// calculate objects intersecting the picking ray
-     const  intersects = raycaster.intersectObjects( scene.children, true );
+    // calculate objects intersecting the picking ray
+    const intersects = raycaster.intersectObjects( scene.children, true );
 
 
-    if (intersects.length > 0){
-        controls.enabled=false;
-    } else {
-        controls.enabled=true;
+
+    if(intersects.length > 0 && intersects[0].object.name=='prelim-mouse-blender-3'){
+
+        zombieMouse.mesh[0].material = zombieMouse.hoverMaterial;
+    }
+    else{
+        zombieMouse.mesh[0].material = zombieMouse.material;
     }
 
 
-    if (intersects.length > 0 && mouseDown && intersects[0].object.name=='prelim-mouse-blender-3'){
-        console.log('Intersection click', intersects[0])
-        console.log(intersects[0].object.name);
-       
+    if (mouseClick && intersects.length > 0 && intersects[0].object.name=='prelim-mouse-blender-3'){
+        
+        console.log('Intersection click', intersects[0].object.name)
         mouseSpeech.play();
 
         //silent audio and captions play
         const audio = document.getElementById("audio-1");
-        audio.play();
-
-
-
+        audio.play();    
     }
-
+    
+        
+ 
     
     renderer.render(scene, camera);
+
+    mouseClick = false;
+
 };
 
-
-// animate();

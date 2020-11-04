@@ -1,5 +1,4 @@
 ORBITAL CONTROLS:
-drag, zoom and pan on intersect
 snap to target
 on spin sound - bicycle wheel
 
@@ -19,11 +18,19 @@ MESHES
  get live server to bind to address so can check opn phone
 
  ACCESSIBILITY
-closed captios
+closed captions
+cc toggle
+audio toggle
 
 hud controls (enable on 'play' screen): 
     orbital controls autorotate on/off
     list clips, playable
+    ambient sound cc
 
 
 favicon
+
+CREDITS
+audio
+julian
+ru

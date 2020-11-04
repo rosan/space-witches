@@ -34,8 +34,8 @@ button, .button {
     width: 20%;
     height: 10%;
     margin-left: 40%;
-    margin-top: 42%;
-    position: absolute;
+    bottom:20px;
+    position: fixed;
     text-align: center;
     display: block;
 }
