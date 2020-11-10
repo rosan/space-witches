@@ -9,19 +9,24 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, camera, renderer, cube,  mouse, mouseDown, mouseMove, mouseClick, mouseOver, mouseSound, mouseSpeech, controls ;
+let scene, camera, renderer, cube1,  mouse, mouseDown, mouseMove, mouseClick, mouseOver, mouseSound, mouseSpeech, controls ;
 
 let zombieMouse = {
     gltfScene: null,
     mesh: null,
-    material: null,
+    animations: null,
+    materialMap: null,
     hoverTexture: null,
     hoverMaterial: null,
+    mixer: null,
 }
 
 const raycaster = new THREE.Raycaster();
 mouse = new THREE.Vector2(1,1);
 
+const clock = new THREE.Clock();
+let speed = 2;
+let delta = 0;
 
 //make overlay div
 const overlay = document.createElement("div");
@@ -109,7 +114,6 @@ function init(){
     camera.add( listener );
 
 
-   
     // create a global audio source
     const sound = new THREE.Audio( listener );
 
@@ -137,25 +141,43 @@ function init(){
 
 
     // Geometry created
-    const geometry = new THREE.BoxGeometry();
-    const texture = new THREE.TextureLoader().load('texture/brick-texture.jpg')
-    const material = new THREE.MeshLambertMaterial({map: texture});
-    cube = new THREE.Mesh(geometry, material);
-    cube.position.x = 5;
+    const geometry = new THREE.BoxGeometry(6,17,7);
+    // const texture = new THREE.TextureLoader().load('texture/brick-texture.jpg')
+    // const material = new THREE.MeshLambertMaterial({map: texture});
+    cube1 = new THREE.Mesh(geometry);
+    cube1.position.x = 0;
+    cube1.position.y = 7;
+    cube1.position.z = -3;
 
-    scene.add(cube);
+    cube1.name = 'zombie-mouse-bounding-box'
+    // scene.add(cube);
 
-    // Loading in the model
+    console.log(cube1);
+
+    // scene.add(cube);
+
+    // Loading in zombie mouse model
     const loader = new GLTFLoader();
-    loader.load('models/mouse-rough-v2.gltf', function (gltf) {
+    loader.load('models/full-mouse-1-animation-embed-4.gltf', function (gltf) {
         zombieMouse.gltfScene = gltf.scene;
+        zombieMouse.animations = gltf.animations;
 
         scene.add(gltf.scene);
-        console.log(gltf.scene);
+        console.log(zombieMouse.gltfScene.children[0]);
+        console.log(zombieMouse.animations);
 
-        zombieMouse.mesh = zombieMouse.gltfScene.children.filter(function(m){return m.name=='prelim-mouse-blender-3'});
-        zombieMouse.material = zombieMouse.mesh[0].material;
 
+        //make this more elegant: breadth first search
+        zombieMouse.mesh = zombieMouse.gltfScene.children[0].children.filter(function(m){return m.name=='prelim-mouse-blender-3'});
+        zombieMouse.materialMap = zombieMouse.mesh[0].material.map;
+
+
+        //Animation
+        zombieMouse.mixer = new THREE.AnimationMixer( zombieMouse.gltfScene.children[0] );
+        const clips = zombieMouse.animations;
+
+        const action = zombieMouse.mixer.clipAction(clips[0]);
+        action.play();
 
     }, undefined, function ( error ) {
 
@@ -163,9 +185,12 @@ function init(){
 
     } );
 
-    zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg')
-    zombieMouse.hoverMaterial = new THREE.MeshLambertMaterial({map: zombieMouse.hoverTexture});
 
+    
+
+
+    zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg');
+    zombieMouse.hoverMaterial = new THREE.MeshStandardMaterial({map: zombieMouse.hoverTexture});
 
     
     // Mousemodel ambient audio
@@ -248,35 +273,55 @@ function init(){
 
 
 
-
 const animate = function animate () { 
     requestAnimationFrame(animate);
     if(!zombieMouse.gltfScene){return;}
+
+    delta = clock.getDelta();
+    zombieMouse.mixer.update (delta);
+    // todo deltaSeconds
+
     
-    zombieMouse.gltfScene.rotation.x += 0.001;
-    zombieMouse.gltfScene.rotation.y += 0.001;
+    zombieMouse.gltfScene.rotation.x += 0.3 * delta;
+    zombieMouse.gltfScene.rotation.y += 0.3 * delta;
     zombieMouse.gltfScene.add(mouseSound);
     zombieMouse.gltfScene.add(mouseSpeech);
+
+    cube1.rotation.x += 0.3 * delta;
+    cube1.rotation.y += 0.3 * delta;
+
+
+
+
 
 
     // update the picking ray with the camera and mouse position
 	raycaster.setFromCamera( mouse, camera );
 
     // calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObjects( scene.children, true );
+    const intersects = raycaster.intersectObject( cube1, true );
+
+    if(intersects.length > 0){
+        console.log('cube intersected');
+    }
 
 
 
-    if(intersects.length > 0 && intersects[0].object.name=='prelim-mouse-blender-3'){
 
-        zombieMouse.mesh[0].material = zombieMouse.hoverMaterial;
+    if(intersects.length > 0 && intersects[0].object.name=='zombie-mouse-bounding-box'){
+
+        
+        zombieMouse.hoverTexture.wrapS = THREE.RepeatWrapping;
+        zombieMouse.hoverTexture.wrapT = THREE.RepeatWrapping;
+        zombieMouse.hoverTexture.flipY = false;
+        zombieMouse.mesh[0].material.map = zombieMouse.hoverTexture;
     }
     else{
-        zombieMouse.mesh[0].material = zombieMouse.material;
+        zombieMouse.mesh[0].material.map = zombieMouse.materialMap;
     }
 
 
-    if (mouseClick && intersects.length > 0 && intersects[0].object.name=='prelim-mouse-blender-3'){
+    if (mouseClick && intersects.length > 0 && intersects[0].object.name=='zombie-mouse-bounding-box'){
         
         console.log('Intersection click', intersects[0].object.name)
         mouseSpeech.play();
