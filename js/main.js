@@ -1,15 +1,10 @@
-
-
-
-
-
 import * as THREE from  'https://unpkg.com/three@0.121.1/build/three.module.js';
 
 import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/GLTFLoader.js';
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, camera, renderer, mouse, cube1, mouseDown, mouseMove, mouseClick, mouseOver, mouseSound, mouseSpeech, controls, starField3, starFieldMaterial3, destination ;
+let scene, camera, renderer, cube1, controls, starField3, starFieldMaterial3, destination ;
 
 let zombieMouse = {
     gltfScene: null,
@@ -20,20 +15,27 @@ let zombieMouse = {
     hoverTexture: null,
     hoverMaterial: null,
     mixer: null,
+    sound: null,
+    speech: null,
+}
+
+let mouse = {
+    click: null,
+    move: null,
+    over: null,
+    down: null,
 }
 
 const raycaster = new THREE.Raycaster();
 mouse = new THREE.Vector2(1,1);
 
 const clock = new THREE.Clock();
-let speed = 2;
 let delta = 0;
 
 //make overlay div
 const overlay = document.createElement("div");
 document.body.appendChild(overlay); 
 overlay.id="overlay";
-
 
 //make button
 const button = document.createElement("button");
@@ -56,6 +58,64 @@ function changeTarget(){
     console.log(alpha);
 }
 
+//Starfield
+function starField(){
+    const starDisk = new THREE.TextureLoader().load( 'texture/disc.png' );
+
+    const starGeometry = new THREE.Geometry();
+    for (let i = 0; i < 2000; i++) {
+        const vertex = new THREE.Vector3();
+        vertex.x = Math.random()*1000-500;
+        vertex.y = Math.random()*1000-500;
+        vertex.z = Math.random()*1000-500;
+        starGeometry.vertices.push(vertex);
+    }
+    const starField = new THREE.Points(starGeometry, new THREE.PointsMaterial({
+        map: starDisk,
+        size: 0.1,
+        color: 0xffffff
+        })
+    ); 
+    scene.add(starField);
+    starField.position.z = 100;
+
+
+    const starGeometry2 = new THREE.Geometry();
+    for (let i = 0; i < 1000; i++) {
+        const vertex = new THREE.Vector3();
+        vertex.x = Math.random()*1000-800;
+        vertex.y = Math.random()*1000-800;
+        vertex.z = Math.random()*1000-800;
+        starGeometry2.vertices.push(vertex);
+    }
+    const starField2 = new THREE.Points(starGeometry2, new THREE.PointsMaterial({
+        map: starDisk,
+        size: 0.7,
+        color: 0xa8e6ff
+        })
+    ); 
+    scene.add(starField2);
+    starField2.position.z = 150;
+
+
+    const starGeometry3 = new THREE.Geometry();
+    for (let i = 0; i < 1000; i++) {
+        const vertex = new THREE.Vector3();
+        vertex.x = Math.random()*1000-500;
+        vertex.y = Math.random()*1000-500;
+        vertex.z = Math.random()*1000-200;
+        starGeometry3.vertices.push(vertex);
+    }
+    starFieldMaterial3 = new THREE.PointsMaterial({
+        map: starDisk,
+        size: 0.4,
+        color: 0xffc47d
+        })
+    starField3 = new THREE.Points(starGeometry3, starFieldMaterial3);
+    scene.add(starField3);
+    starField3.position.z = 130;
+}
+
 //Bounding boxes
 function makeZombiMouseBoundingBox (){
     const geometry = new THREE.BoxGeometry(6,17,7);
@@ -71,7 +131,6 @@ function makeZombiMouseBoundingBox (){
     cube1.parent = zombieMouse.gltfScene;
     console.log(zombieMouse.gltfScene);
 
-
     // scene.add(cube1)
 }
 
@@ -84,13 +143,11 @@ function loadZombieMouse(){
         zombieMouse.gltfScene.position.y = 5;
         zombieMouse.gltfScene.position.z = 3;
 
-
         zombieMouse.animations = gltf.animations;
 
         scene.add(gltf.scene);
         console.log(zombieMouse.gltfScene.children[0]);
         console.log(zombieMouse.animations);
-
 
         //Extracting material: make this more elegant: breadth first search
         zombieMouse.mesh = zombieMouse.gltfScene.children[0].children.filter(function(m){return m.name=='prelim-mouse-blender-3'});
@@ -100,7 +157,6 @@ function loadZombieMouse(){
         zombieMouse.gltfScene.add(cube1);
         
         console.log(zombieMouse.gltfScene)
-
 
         //Animation
         zombieMouse.mixer = new THREE.AnimationMixer( zombieMouse.gltfScene.children[0] );
@@ -114,7 +170,6 @@ function loadZombieMouse(){
         console.error( error );
 
     } );
-
 
 }
 
@@ -168,7 +223,6 @@ function audioControls (){
 }
 
 
-
 function init(){
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -207,9 +261,7 @@ function init(){
     controls = new OrbitControls(camera, renderer.domElement );
     controls.enableDamping = true;
     controls.dampingFactor = 0.00008;
-    destination = controls.target;
-
-      
+    destination = controls.target;    
     
     //Light
     const light = new THREE.PointLight(0xFFFFFF, 1, 500);
@@ -228,133 +280,57 @@ function init(){
     // scene.add(skyMesh);
 
     //make starfield
-    const starDisk = new THREE.TextureLoader().load( 'texture/disc.png' );
 
-    const starGeometry = new THREE.Geometry();
-    for (let i = 0; i < 2000; i++) {
-        const vertex = new THREE.Vector3();
-        vertex.x = Math.random()*1000-500;
-        vertex.y = Math.random()*1000-500;
-        vertex.z = Math.random()*1000-500;
-        starGeometry.vertices.push(vertex);
-    }
-    const starField = new THREE.Points(starGeometry, new THREE.PointsMaterial({
-        map: starDisk,
-        size: 0.1,
-        color: 0xffffff
-        })
-    );
-    
-    scene.add(starField);
-    starField.position.z = 100;
-
-
-    const starGeometry2 = new THREE.Geometry();
-    for (let i = 0; i < 1000; i++) {
-        const vertex = new THREE.Vector3();
-        vertex.x = Math.random()*1000-800;
-        vertex.y = Math.random()*1000-800;
-        vertex.z = Math.random()*1000-800;
-        starGeometry2.vertices.push(vertex);
-    }
-    const starField2 = new THREE.Points(starGeometry2, new THREE.PointsMaterial({
-        map: starDisk,
-        size: 0.7,
-        color: 0xa8e6ff
-        })
-    );
-    
-    scene.add(starField2);
-    starField2.position.z = 150;
-
-
-    const starGeometry3 = new THREE.Geometry();
-    for (let i = 0; i < 1000; i++) {
-        const vertex = new THREE.Vector3();
-        vertex.x = Math.random()*1000-500;
-        vertex.y = Math.random()*1000-500;
-        vertex.z = Math.random()*1000-200;
-        starGeometry3.vertices.push(vertex);
-    }
-    starFieldMaterial3 = new THREE.PointsMaterial({
-        map: starDisk,
-        size: 0.4,
-        color: 0xffc47d
-        })
-    starField3 = new THREE.Points(starGeometry3, starFieldMaterial3);
-
-   
-    
-    scene.add(starField3);
-    starField3.position.z = 130;
-
-
+    starField()
 
     loadZombieMouse()
-
 
     zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg');
     zombieMouse.hoverMaterial = new THREE.MeshStandardMaterial({map: zombieMouse.hoverTexture});
 
     
     // Mousemodel ambient audio
-    mouseSound = new THREE.PositionalAudio( listener );
+    zombieMouse.sound = new THREE.PositionalAudio( listener );
     audioLoader.load( 'Audio/NASA_sun_sonification.wav', function (buffer) {
-        mouseSound.setBuffer(buffer);
-        mouseSound.setRefDistance(10);
-        mouseSound.play();
+        zombieMouse.sound.setBuffer(buffer);
+        zombieMouse.sound.setRefDistance(10);
+        zombieMouse.sound.play();
     });
 
     // Mousemodel on click audio dialogue
-    mouseSpeech = new THREE.PositionalAudio( listener );
+    zombieMouse.speech = new THREE.PositionalAudio( listener );
     audioLoader.load( 'Audio/Test-recording.m4a', function (buffer) {
-        mouseSpeech.setBuffer(buffer);
-        mouseSpeech.setRefDistance(10);
+        zombieMouse.speech.setBuffer(buffer);
+        zombieMouse.speech.setRefDistance(10);
         
     });
     
     // mouse controls
     function onMouseMove( event ) {
-
-
         // calculate mouse position in normalized device coordinates
         // (-1 to +1) for both components
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;   
         console.log(event.buttons);
-
         
     }
 
-    function onMouseDown( event ) {     
-        mouseDown = true;
-        console.log('mouse is down');	 
-    }
-
-    function onMouseUp( event ) {
-        mouseDown = false;
-        console.log('mouse is up');	
-    }
-
     function onMouseOver( event ){
-        mouseOver = true;
+        mouse.over = true;
         console.log('mouse is over');	
     }
 
     function onMouseOut( event ){
-        mouseOver = false;
+        mouse.over = false;
         console.log('mouse is out');	
     }
 
     function onMouseClick ( event ){
-        mouseClick = true;
+        mouse.click = true;
         console.log('mouse click');	
     }
 
-
     window.addEventListener( 'mousemove', onMouseMove, false );
-    // window.addEventListener( 'mousedown', onMouseDown, false );
-    // window.addEventListener( 'mouseup', onMouseUp, false );
     window.addEventListener( 'mouseover', onMouseOver, false );
     window.addEventListener( 'mouseout', onMouseOut, false );
     window.addEventListener( 'click', onMouseClick, false );
@@ -366,11 +342,9 @@ function init(){
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth,window.innerHeight);
 
-};
+    };
 
     window.addEventListener('resize', onWindowResize, false);
-
-
 
 };
 
@@ -383,16 +357,14 @@ const animate = function animate () {
     delta = clock.getDelta();
     zombieMouse.mixer.update (delta);
     // todo deltaSeconds
-
-    
+  
     zombieMouse.gltfScene.rotation.x += 0.3 * delta;
     zombieMouse.gltfScene.rotation.y += 0.3 * delta;
-    zombieMouse.gltfScene.add(mouseSound);
-    zombieMouse.gltfScene.add(mouseSpeech);
+    zombieMouse.gltfScene.add( zombieMouse.sound);
+    zombieMouse.gltfScene.add( zombieMouse.speech);
 
     
     // starField3.material.color.set(0x852121);
-
 
     // update the picking ray with the camera and mouse position
 	raycaster.setFromCamera( mouse, camera );
@@ -403,8 +375,6 @@ const animate = function animate () {
     if(intersects.length > 0){
         console.log('cube intersected');
     }
-
-
 
     if(intersects.length > 0 && intersects[0].object.name=='zombie-mouse-bounding-box'){
         // console.log(controls.target);
@@ -419,10 +389,10 @@ const animate = function animate () {
     }
 
 
-    if (mouseClick && intersects.length > 0 && intersects[0].object.name== 'zombie-mouse-bounding-box'){
+    if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'zombie-mouse-bounding-box'){
         
         console.log('Intersection click', intersects[0].object.name)
-        mouseSpeech.play();
+        zombieMouse.speech.play();
 
         // controls.target = zombieMouse.gltfScene.position;
         alpha = 0;
@@ -441,7 +411,7 @@ const animate = function animate () {
     
     renderer.render(scene, camera);
 
-    mouseClick = false;
+    mouse.click = false;
 
 };
 
