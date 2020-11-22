@@ -4,7 +4,8 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, camera, renderer, cube1, controls, starField3, starFieldMaterial3, destination ;
+let scene, camera, renderer, cube1, videoCube, controls, starField3, starFieldMaterial3, destination ;
+
 
 let zombieMouse = {
     gltfScene: null,
@@ -26,11 +27,41 @@ let mouse = {
     down: null,
 }
 
+let projectionScreen = {
+    gltfScene: null,
+    boundingBox: null,
+    mesh: null,
+    originalMaterial: null,
+    material: null,
+    animations: null,
+    materialMap: null,
+    video: null,
+    videoTexture: null,
+    videoMaterial: null,
+    mixer: null,
+    sound: null,
+    speech: null,
+}
+
 const raycaster = new THREE.Raycaster();
 mouse = new THREE.Vector2(1,1);
 
 const clock = new THREE.Clock();
 let delta = 0;
+
+
+function makeVideo(){
+    const video = document.createElement("video");
+    video.id = 'video-1';
+    document.body.appendChild(video);
+    const source = document.createElement('source');
+    source.setAttribute('src','texture/mouse-on-white-30fps.mp4');
+    video.appendChild(source);    
+
+}
+
+
+makeVideo();
 
 //make overlay div
 const overlay = document.createElement("div");
@@ -55,7 +86,7 @@ function changeTarget(){
         alpha = 1;
     }
     controls.target.lerp(destination, alpha);
-    console.log(alpha);
+    // console.log(alpha);
 }
 
 //Starfield
@@ -129,9 +160,33 @@ function makeZombiMouseBoundingBox (){
     cube1.position.z = -3;
     cube1.name = 'zombie-mouse-bounding-box';
     cube1.parent = zombieMouse.gltfScene;
-    console.log(zombieMouse.gltfScene);
+    // console.log(zombieMouse.gltfScene);
 
     // scene.add(cube1)
+}
+
+function loadProjectionScreen (){
+    const loader = new GLTFLoader();
+    loader.load('models/projection-screen-v7.gltf', function (gltf) {
+        projectionScreen.gltfScene = gltf.scene;
+        gltf.scene.name = 'projection-screen';
+        scene.add(gltf.scene);
+        console.log(projectionScreen.gltfScene.children[7])
+        projectionScreen.mesh = projectionScreen.gltfScene.children[7];
+        projectionScreen.material = projectionScreen.mesh.material;
+        projectionScreen.originalMaterial = projectionScreen.mesh.material;
+
+        console.log(scene)
+        
+    
+    }, undefined, function ( error ) {
+
+        console.error( error );
+
+    } );
+
+    
+
 }
 
 function loadZombieMouse(){
@@ -146,8 +201,8 @@ function loadZombieMouse(){
         zombieMouse.animations = gltf.animations;
 
         scene.add(gltf.scene);
-        console.log(zombieMouse.gltfScene.children[0]);
-        console.log(zombieMouse.animations);
+        // console.log(zombieMouse.gltfScene.children[0]);
+        // console.log(zombieMouse.animations);
 
         //Extracting material: make this more elegant: breadth first search
         zombieMouse.mesh = zombieMouse.gltfScene.children[0].children.filter(function(m){return m.name=='prelim-mouse-blender-3'});
@@ -156,7 +211,7 @@ function loadZombieMouse(){
         makeZombiMouseBoundingBox ();
         zombieMouse.gltfScene.add(cube1);
         
-        console.log(zombieMouse.gltfScene)
+        // console.log(zombieMouse.gltfScene)
 
         //Animation
         zombieMouse.mixer = new THREE.AnimationMixer( zombieMouse.gltfScene.children[0] );
@@ -223,6 +278,7 @@ function audioControls (){
 }
 
 
+
 function init(){
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -260,7 +316,7 @@ function init(){
     // Controls
     controls = new OrbitControls(camera, renderer.domElement );
     controls.enableDamping = true;
-    controls.dampingFactor = 0.00008;
+    controls.dampingFactor = 0.02;
     destination = controls.target;    
     
     //Light
@@ -272,7 +328,7 @@ function init(){
 
     //sky
     const skySphere = new THREE.SphereGeometry(500,60,40);
-    const equiMaterial = new THREE.MeshBasicMaterial( {
+    const equiMaterial = new THREE.MeshLambertMaterial( {
        map: new THREE.TextureLoader().load( 'texture/Nasa-sky-map.jpg' ),   side: THREE.BackSide
     });
 
@@ -281,12 +337,46 @@ function init(){
 
     //make starfield
 
-    starField()
+    starField();
 
-    loadZombieMouse()
+    loadZombieMouse();
+
+    loadProjectionScreen ()
+
+   
 
     zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg');
     zombieMouse.hoverMaterial = new THREE.MeshStandardMaterial({map: zombieMouse.hoverTexture});
+
+
+    function loadVideoTexture(){
+        projectionScreen.video = document.getElementById('video-1');
+        projectionScreen.videoTexture = new THREE.VideoTexture( projectionScreen.video );
+        projectionScreen.videoTexture.flipY = false;
+        // projectionScreen.videoTexture.rotation = Math.Pi/2;
+        projectionScreen.videoTexture.format = THREE.RGBFormat;
+        const color2 = new THREE.Color( 0x2194ce );
+        projectionScreen.videoMaterial = new THREE.MeshBasicMaterial({map: projectionScreen.videoTexture});
+        projectionScreen.videoMaterial.name = 'videoMaterial';
+
+        projectionScreen.video.addEventListener('ended', function(){
+            console.log('video is done');
+            projectionScreen.mesh.material = projectionScreen.originalMaterial;
+    
+        });
+
+    }
+
+    loadVideoTexture()
+    
+    // const videoCubeGeometry = new THREE.BoxGeometry(10,10,10)
+    // const video = document.getElementById('video-1');
+    // video.play();
+    // const videoTexture = new THREE.VideoTexture( video );
+    // videoTexture.format = THREE.RGBFormat;
+    // const videoMaterial = new THREE.MeshBasicMaterial({map: videoTexture});
+    // videoCube = new THREE.Mesh(videoCubeGeometry, videoMaterial);
+    // scene.add(videoCube);   
 
     
     // Mousemodel ambient audio
@@ -311,7 +401,7 @@ function init(){
         // (-1 to +1) for both components
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;   
-        console.log(event.buttons);
+        // console.log(event.buttons);
         
     }
 
@@ -322,7 +412,7 @@ function init(){
 
     function onMouseOut( event ){
         mouse.over = false;
-        console.log('mouse is out');	
+        // console.log('mouse is out');	
     }
 
     function onMouseClick ( event ){
@@ -366,15 +456,36 @@ const animate = function animate () {
     
     // starField3.material.color.set(0x852121);
 
+    let raycasterArray = [cube1, projectionScreen.gltfScene]
+    // array of intersects objects for performance, so we don't have to calculate intersects on all scene.children
+
     // update the picking ray with the camera and mouse position
 	raycaster.setFromCamera( mouse, camera );
 
     // calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObject( cube1, true );
+    const intersects = raycaster.intersectObjects( raycasterArray, true );
 
-    if(intersects.length > 0){
-        console.log('cube intersected');
+    // if(intersects.length > 0){
+    //     console.log('cube intersected');
+    // }
+
+    if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'screen'){
+        console.log(projectionScreen.mesh.material);
+        console.log(projectionScreen.videoMaterial);
+        projectionScreen.video.play();
+        projectionScreen.mesh.material = projectionScreen.videoMaterial;
+        console.log(projectionScreen.mesh.material);
+
+        alpha = 0;
+        destination = projectionScreen.gltfScene.position;
+
     }
+
+    if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'Plane'){
+        alpha = 0;
+        destination = projectionScreen.gltfScene.position;
+    }
+
 
     if(intersects.length > 0 && intersects[0].object.name=='zombie-mouse-bounding-box'){
         // console.log(controls.target);
@@ -388,6 +499,7 @@ const animate = function animate () {
         zombieMouse.mesh[0].material.map = zombieMouse.materialMap;
     }
 
+ 
 
     if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'zombie-mouse-bounding-box'){
         
