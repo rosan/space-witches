@@ -6,6 +6,8 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/contro
 
 let scene, camera, renderer, cube1, videoCube, controls, starField3, starFieldMaterial3, destination ;
 
+let centralCube, centralMouseCube;
+
 
 let zombieMouse = {
     gltfScene: null,
@@ -18,6 +20,25 @@ let zombieMouse = {
     mixer: null,
     sound: null,
     speech: null,
+}
+
+let spaceWitch= {
+    gltfScene: null,
+    boundingBox: null,
+    mesh: null,
+    animations: null,
+    materialMap: null,
+    hoverMaterial: null,
+    hoverMaterial: null,
+    mixer: null,
+    sound: null,
+    speech: null,
+    body: null,
+    array: null,
+    hat: {
+        material: null,
+        mesh: null,
+    },
 }
 
 let mouse = {
@@ -165,10 +186,44 @@ function makeZombiMouseBoundingBox (){
     // scene.add(cube1)
 }
 
+let cube2;
+
+function makeSpaceWitchBoundingBox (){
+    const geometry = new THREE.BoxGeometry(3,9,4);
+    cube2= new THREE.Mesh(geometry);
+    // spaceWitch.boundingBox.visible = false;
+    cube2.position.y=4;
+    cube2.visible = false;
+    cube2.name = 'space-witch-bounding-box';
+    cube2.parent = spaceWitch.gltfScene;
+    console.log(cube2);
+    scene.add(cube2);
+}
+
+
+
+function makeCentralElement(){
+    const geometry = new THREE.BoxGeometry(1,1,1);
+    centralCube = new THREE.Mesh(geometry);
+    centralCube.name = 'central cube'
+    centralCube.visible = false;
+    scene.add(centralCube);
+}
+
+function makeCentralMouseElement(){
+    const geometry = new THREE.BoxGeometry(1,1,1);
+    centralMouseCube = new THREE.Mesh(geometry);
+    centralMouseCube.name = 'central mouse cube'
+    centralMouseCube.visible = false;
+
+    scene.add(centralMouseCube);
+}
+
 function loadProjectionScreen (){
     const loader = new GLTFLoader();
     loader.load('models/projection-screen-v7.gltf', function (gltf) {
         projectionScreen.gltfScene = gltf.scene;
+
         gltf.scene.name = 'projection-screen';
         scene.add(gltf.scene);
         console.log(projectionScreen.gltfScene.children[7])
@@ -177,7 +232,8 @@ function loadProjectionScreen (){
         projectionScreen.originalMaterial = projectionScreen.mesh.material;
 
         console.log(scene)
-        
+        projectionScreen.gltfScene.rotation.y = -1;
+
     
     }, undefined, function ( error ) {
 
@@ -185,18 +241,81 @@ function loadProjectionScreen (){
 
     } );
 
-    
-
 }
+
+function loadSpaceWitch(){
+     // Loading in zombie mouse model
+     const loader = new GLTFLoader();
+     loader.load('models/space-witch-rehat-top-update.gltf', function (gltf) {
+         spaceWitch.gltfScene = gltf.scene;
+         spaceWitch.gltfScene.position.x = 10;
+         spaceWitch.gltfScene.position.y = 10;
+         spaceWitch.gltfScene.position.z = 10;
+         spaceWitch.gltfScene.name = 'Space Witch Scene';
+ 
+         spaceWitch.animations = gltf.animations;
+ 
+         scene.add(gltf.scene);
+         console.log(gltf);
+         console.log(spaceWitch.gltfScene);
+
+        
+        makeSpaceWitchBoundingBox();
+        spaceWitch.gltfScene.add(cube2);
+         //Animations
+        const leftArm = spaceWitch.gltfScene.children.filter(function(m){return m.name=="left-arm-armature"})[0];
+        leftArm.animation = spaceWitch.animations.filter(function(m){return m.name=="Armature.002Action.001"})[0];
+        spaceWitch.mixer = new THREE.AnimationMixer(spaceWitch.gltfScene);
+        const leftArmAction = spaceWitch.mixer.clipAction(leftArm.animation, leftArm);
+
+        const rightArm = spaceWitch.gltfScene.children.filter(function(m){return m.name=="right-arm-armature"})[0];
+        rightArm.animation = spaceWitch.animations.filter(function(m){return m.name=="Armature.001Action"})[0];
+        const rightArmAction = spaceWitch.mixer.clipAction(rightArm.animation, rightArm);
+
+        const top = spaceWitch.gltfScene.children.filter(function(m){return m.name=="top"})[0];
+        top.animation = spaceWitch.animations.filter(function(m){return m.name=="topAction"})[0];
+        const topAction = spaceWitch.mixer.clipAction(top.animation, top);
+
+        const hat = spaceWitch.gltfScene.children.filter(function(m){return m.name=="hat"})[0];
+        hat.animation = spaceWitch.animations.filter(function(m){return m.name=="hatAction"})[0];
+
+        const hatAction = spaceWitch.mixer.clipAction(hat.animation, hat);
+
+        spaceWitch.body = spaceWitch.gltfScene.children.filter(function(m){return m.name=="belly-legs-feet-armature"})[0];
+        spaceWitch.body.animation = spaceWitch.animations.filter(function(m){return m.name=="Armature.003Action"})[0];
+        const bodyAction = spaceWitch.mixer.clipAction(spaceWitch.body.animation, spaceWitch.body);
+
+        leftArmAction.play();
+        rightArmAction.play();
+        hatAction.play();
+        bodyAction.play();
+        topAction.play();
+
+        makeCentralElement();
+
+        spaceWitch.gltfScene.parent = centralCube;
+
+
+        spaceWitch.hat.mesh = spaceWitch.gltfScene.getObjectByName("hat-2001_0",true);
+        spaceWitch.hat.material = spaceWitch.hat.mesh.material;
+
+ 
+     }, undefined, function ( error ) {
+ 
+         console.error( error );
+ 
+     } );
+}
+
 
 function loadZombieMouse(){
     // Loading in zombie mouse model
     const loader = new GLTFLoader();
     loader.load('models/full-mouse-2-animation.gltf', function (gltf) {
         zombieMouse.gltfScene = gltf.scene;
-        zombieMouse.gltfScene.position.x = 20;
-        zombieMouse.gltfScene.position.y = 5;
-        zombieMouse.gltfScene.position.z = 3;
+        zombieMouse.gltfScene.position.x = -20;
+        zombieMouse.gltfScene.position.y = -5;
+        zombieMouse.gltfScene.position.z = -3;
 
         zombieMouse.animations = gltf.animations;
 
@@ -219,6 +338,9 @@ function loadZombieMouse(){
 
         const action = zombieMouse.mixer.clipAction(clips[0]);
         action.play();
+
+        makeCentralMouseElement();
+        zombieMouse.gltfScene.parent = centralMouseCube;
 
     }, undefined, function ( error ) {
 
@@ -341,12 +463,17 @@ function init(){
 
     loadZombieMouse();
 
-    loadProjectionScreen ()
+    loadProjectionScreen ();
+    
+    loadSpaceWitch();
+    
 
    
 
     zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg');
     zombieMouse.hoverMaterial = new THREE.MeshStandardMaterial({map: zombieMouse.hoverTexture});
+
+    spaceWitch.hoverMaterial = new THREE.MeshBasicMaterial();
 
 
     function loadVideoTexture(){
@@ -439,24 +566,36 @@ function init(){
 };
 
 
-
 const animate = function animate () { 
     requestAnimationFrame(animate);
-    if(!zombieMouse.gltfScene){return;}
+    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene){return;}
 
     delta = clock.getDelta();
     zombieMouse.mixer.update (delta);
+    spaceWitch.mixer.update (delta);
+ 
+
     // todo deltaSeconds
   
-    zombieMouse.gltfScene.rotation.x += 0.3 * delta;
-    zombieMouse.gltfScene.rotation.y += 0.3 * delta;
+    zombieMouse.gltfScene.rotation.x += 0.2 * delta;
+    zombieMouse.gltfScene.rotation.y += 0.1 * delta;
     zombieMouse.gltfScene.add( zombieMouse.sound);
     zombieMouse.gltfScene.add( zombieMouse.speech);
+    
+
+    spaceWitch.gltfScene.rotation.x +=-0.1 * delta;
+    spaceWitch.gltfScene.rotation.y +=-0.04 * delta;
+
+    centralCube.rotation.z += 0.1* delta;
+
+    centralMouseCube.rotation.y += -0.05* delta;
+    centralMouseCube.rotation.x += -0.09* delta;
+
 
     
     // starField3.material.color.set(0x852121);
 
-    let raycasterArray = [cube1, projectionScreen.gltfScene]
+    let raycasterArray = [cube1, cube2, projectionScreen.gltfScene]
     // array of intersects objects for performance, so we don't have to calculate intersects on all scene.children
 
     // update the picking ray with the camera and mouse position
@@ -514,6 +653,28 @@ const animate = function animate () {
         //silent audio and captions play
         const audio = document.getElementById("audio-1");
         audio.play();    
+    }
+
+    if(intersects.length > 0 && intersects[0].object.name=='space-witch-bounding-box'){
+        console.log('space-witch-hover');
+        
+ 
+
+        spaceWitch.hat.mesh.material=spaceWitch.hoverMaterial;
+
+    }
+    else{
+        spaceWitch.hat.mesh.material = spaceWitch.hat.material;
+    }
+
+
+    if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'space-witch-bounding-box'){
+        
+        console.log('space witch Intersection click', intersects[0].object.name)
+
+        // controls.target = zombieMouse.gltfScene.position;
+        alpha = 0;
+        destination = spaceWitch.gltfScene.position;   
     }
     
     changeTarget();
