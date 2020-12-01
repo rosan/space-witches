@@ -4,7 +4,7 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, camera, renderer, cube1, videoCube, controls, starField3, starFieldMaterial3, destination ;
+let scene, camera, renderer, cube1, videoCube, videoSphere, controls, starField3, starFieldMaterial3, destination ;
 
 let centralCube, centralMouseCube;
 
@@ -448,16 +448,6 @@ function init(){
 
     camera.position.z = 40;
 
-    //sky
-    const skySphere = new THREE.SphereGeometry(500,60,40);
-    const equiMaterial = new THREE.MeshLambertMaterial( {
-       map: new THREE.TextureLoader().load( 'texture/Nasa-sky-map.jpg' ),   side: THREE.BackSide
-    });
-
-    const skyMesh = new THREE.Mesh(skySphere, equiMaterial);
-    // scene.add(skyMesh);
-
-    //make starfield
 
     starField();
 
@@ -475,6 +465,10 @@ function init(){
 
     spaceWitch.hoverMaterial = new THREE.MeshBasicMaterial();
 
+    
+    
+
+    //make starfield
 
     function loadVideoTexture(){
         projectionScreen.video = document.getElementById('video-1');
@@ -495,15 +489,27 @@ function init(){
     }
 
     loadVideoTexture()
+
+
+    // //sky
+    // const skySphere = new THREE.SphereGeometry(5,6,4);
+    // const equiMaterial = new THREE.MeshLambertMaterial( {
+    //     map: projectionScreen.videoTexture, 
+    // });
+
+    // const skyMesh = new THREE.Mesh(skySphere, equiMaterial);
+    // scene.add(skyMesh);
     
-    // const videoCubeGeometry = new THREE.BoxGeometry(10,10,10)
-    // const video = document.getElementById('video-1');
-    // video.play();
-    // const videoTexture = new THREE.VideoTexture( video );
-    // videoTexture.format = THREE.RGBFormat;
-    // const videoMaterial = new THREE.MeshBasicMaterial({map: videoTexture});
-    // videoCube = new THREE.Mesh(videoCubeGeometry, videoMaterial);
-    // scene.add(videoCube);   
+    // const videoCubeGeometry = new THREE.BoxGeometry(100,100,100)
+    const videoSphereGeometry = new THREE.SphereGeometry(500,6,50);
+    const video = document.getElementById('video-1');
+    const videoTexture = new THREE.VideoTexture( video );
+    videoTexture.format = THREE.RGBFormat;
+    const videoMaterial = new THREE.MeshBasicMaterial({map: videoTexture});
+    videoMaterial.side =  THREE.BackSide;
+    videoSphere = new THREE.Mesh(videoSphereGeometry, videoMaterial);
+
+    
 
     
     // Mousemodel ambient audio
@@ -648,6 +654,15 @@ const animate = function animate () {
         // controls.target = zombieMouse.gltfScene.position;
         alpha = 0;
         destination = zombieMouse.gltfScene.position;
+
+        scene.add(videoSphere);   
+        const video = document.getElementById('video-1');
+        video.play();
+
+        video.addEventListener('ended', function(){
+            scene.remove(videoSphere);
+    
+        });
 
 
         //silent audio and captions play
