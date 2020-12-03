@@ -4,10 +4,32 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, camera, renderer, cube1, videoCube, videoSphere, controls, starField3, starFieldMaterial3, destination ;
+let scene, camera, renderer, videoCube, videoSphere, controls, starField3, starFieldMaterial3, destination ;
 
-let centralCube, centralMouseCube;
+let centralCube, centralMouseCube, centralRoachCube;
 
+let cube1, cube2, cube3;
+
+
+let cockroach = {
+    gltfScene: null,
+    boundingBox: null,
+    mesh: null,
+    animations: null,
+    materialMap: null,
+    hoverMaterial: null,
+    hoverMaterial: null,
+    mixer: null,
+    sound: null,
+    speech: null,
+    body: null,
+    array: null,
+    helmet: {
+        material: null,
+        mesh: null,
+    },
+
+}
 
 let zombieMouse = {
     gltfScene: null,
@@ -78,7 +100,6 @@ function makeVideo(){
     const source = document.createElement('source');
     source.setAttribute('src','texture/mouse-on-white-30fps.mp4');
     video.appendChild(source);    
-
 }
 
 
@@ -169,11 +190,21 @@ function starField(){
 }
 
 //Bounding boxes
+
+function cockroachBoundingBox (){
+    const geometry = new THREE.BoxGeometry(3,7,3);
+    cube3 = new THREE.Mesh(geometry);
+    cube3.visible = false;
+    cube3.position.x = 0;
+    cube3.position.y = 3;
+    cube3.position.z = -1;
+    cube3.name = 'cockroach-bounding-box';
+    cube3.parent = cockroach.gltfScene;
+    scene.add(cube3);
+}
 function makeZombiMouseBoundingBox (){
     const geometry = new THREE.BoxGeometry(6,17,7);
 
-    // const texture = new THREE.TextureLoader().load('texture/brick-texture.jpg')
-    // const material = new THREE.MeshBasicMaterial();
     cube1 = new THREE.Mesh(geometry);
     cube1.visible = false;
     cube1.position.x = 0;
@@ -185,8 +216,6 @@ function makeZombiMouseBoundingBox (){
 
     // scene.add(cube1)
 }
-
-let cube2;
 
 function makeSpaceWitchBoundingBox (){
     const geometry = new THREE.BoxGeometry(3,9,4);
@@ -219,6 +248,15 @@ function makeCentralMouseElement(){
     scene.add(centralMouseCube);
 }
 
+function makeCentralRoachElement(){
+    const geometry = new THREE.BoxGeometry(1,1,1);
+    centralRoachCube = new THREE.Mesh(geometry);
+    centralRoachCube.name = 'central roach cube'
+    centralRoachCube.visible = false;
+    scene.add(centralRoachCube);
+}
+
+
 function loadProjectionScreen (){
     const loader = new GLTFLoader();
     loader.load('models/projection-screen-v7.gltf', function (gltf) {
@@ -243,6 +281,95 @@ function loadProjectionScreen (){
 
 }
 
+function loadCockroach(){
+    // Loading in zombie mouse model
+    const loader = new GLTFLoader();
+    loader.load('models/cockroach-combined-anim-1.gltf', function (gltf) {
+        cockroach.gltfScene = gltf.scene;
+        cockroach.gltfScene.position.x = 15;
+        cockroach.gltfScene.position.y = 15;
+        cockroach.gltfScene.position.z = 15;
+        cockroach.gltfScene.name = 'Cockroach Scene';
+
+        cockroach.animations = gltf.animations;
+
+        scene.add(gltf.scene);
+        console.log('cockroach');
+        console.log(gltf);
+        console.log(cockroach.gltfScene);
+
+        cockroachBoundingBox ();
+        cockroach.gltfScene.add(cube3);
+
+       
+        //Animations
+       const tapeRecorder = cockroach.gltfScene.children.filter(function(m){return m.name=="tape-recorder"})[0];
+       tapeRecorder.animation = cockroach.animations.filter(function(m){return m.name=="tape-recorderAction"})[0];
+       cockroach.mixer = new THREE.AnimationMixer(cockroach.gltfScene);
+       const tapeRecorderAction = cockroach.mixer.clipAction(tapeRecorder.animation, tapeRecorder);
+
+       const l1Leg = cockroach.gltfScene.children.filter(function(m){return m.name=="l-1-leg-armature"})[0];
+       l1Leg.animation = cockroach.animations.filter(function(m){return m.name=="ArmatureAction"})[0];
+       const l1LegAction = cockroach.mixer.clipAction(l1Leg.animation, l1Leg);
+
+       const r2Leg = cockroach.gltfScene.children.filter(function(m){return m.name=="r-2-leg-armature"})[0];
+       r2Leg.animation = cockroach.animations.filter(function(m){return m.name=="Armature.001Action"})[0];
+       const r2LegAction = cockroach.mixer.clipAction(r2Leg.animation, r2Leg);
+
+       const lAntenna = cockroach.gltfScene.children.filter(function(m){return m.name=="l-attena-armature"})[0];
+       lAntenna.animation = cockroach.animations.filter(function(m){return m.name=="Armature.002Action"})[0];
+       const lAntennaAction = cockroach.mixer.clipAction(lAntenna.animation, lAntenna);
+
+       const rAntenna = cockroach.gltfScene.children.filter(function(m){return m.name=="r-1-antenna"})[0];
+       rAntenna.animation = cockroach.animations.filter(function(m){return m.name=="Armature.003Action"})[0];
+       const rAntennaAction = cockroach.mixer.clipAction(rAntenna.animation, rAntenna);
+
+       const r1Leg = cockroach.gltfScene.children.filter(function(m){return m.name=="r-1-leg-armature"})[0];
+       r1Leg.animation = cockroach.animations.filter(function(m){return m.name=="Armature.004Action"})[0];
+       const r1LegAction = cockroach.mixer.clipAction(r1Leg.animation, r1Leg);
+
+       const l3Leg = cockroach.gltfScene.children.filter(function(m){return m.name=="Armature005"})[0];
+       l3Leg.animation = cockroach.animations.filter(function(m){return m.name=="Armature.005Action"})[0];
+       const l3LegAction = cockroach.mixer.clipAction(l3Leg.animation, l3Leg);
+
+       const r3Leg = cockroach.gltfScene.children.filter(function(m){return m.name=="Armature006"})[0];
+       r3Leg.animation = cockroach.animations.filter(function(m){return m.name=="Armature.006Action"})[0];
+       const r3LegAction = cockroach.mixer.clipAction(r3Leg.animation, r3Leg);
+
+       const l2Leg = cockroach.gltfScene.children.filter(function(m){return m.name=="Armature007"})[0];
+       l2Leg.animation = cockroach.animations.filter(function(m){return m.name=="Armature.007Action"})[0];
+       const l2LegAction = cockroach.mixer.clipAction(l2Leg.animation, l2Leg);
+
+
+    tapeRecorderAction.play();
+    l1LegAction.play();
+    r2LegAction.play();
+    lAntennaAction.play();
+    rAntennaAction.play();
+    r1LegAction.play();
+    l3LegAction.play();
+    r3LegAction.play();
+    l2LegAction.play();
+
+
+
+
+    makeCentralRoachElement()
+    cockroach.gltfScene.parent = centralRoachCube;
+
+
+    //    spaceWitch.hat.mesh = spaceWitch.gltfScene.getObjectByName("hat-2001_0",true);
+    //    spaceWitch.hat.material = spaceWitch.hat.mesh.material;
+
+
+    }, undefined, function ( error ) {
+
+        console.error( error );
+
+    } );
+}
+
+
 function loadSpaceWitch(){
      // Loading in zombie mouse model
      const loader = new GLTFLoader();
@@ -256,9 +383,6 @@ function loadSpaceWitch(){
          spaceWitch.animations = gltf.animations;
  
          scene.add(gltf.scene);
-         console.log(gltf);
-         console.log(spaceWitch.gltfScene);
-
         
         makeSpaceWitchBoundingBox();
         spaceWitch.gltfScene.add(cube2);
@@ -449,6 +573,13 @@ function init(){
     camera.position.z = 40;
 
 
+    // put this in later w timing for narrative
+    // const near = 10;
+    // const far = 100;
+    // const color = 'blue';
+    // scene.fog = new THREE.Fog(color, near, far);
+
+
     starField();
 
     loadZombieMouse();
@@ -456,6 +587,8 @@ function init(){
     loadProjectionScreen ();
     
     loadSpaceWitch();
+
+    loadCockroach()
     
 
    
@@ -574,11 +707,12 @@ function init(){
 
 const animate = function animate () { 
     requestAnimationFrame(animate);
-    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene){return;}
+    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene){return;}
 
     delta = clock.getDelta();
     zombieMouse.mixer.update (delta);
     spaceWitch.mixer.update (delta);
+    cockroach.mixer.update (delta);
  
 
     // todo deltaSeconds
@@ -592,16 +726,23 @@ const animate = function animate () {
     spaceWitch.gltfScene.rotation.x +=-0.1 * delta;
     spaceWitch.gltfScene.rotation.y +=-0.04 * delta;
 
+    cockroach.gltfScene.rotation.z += -0.01 * delta;
+    cockroach.gltfScene.rotation.x += -0.04 * delta;
+
+
     centralCube.rotation.z += 0.1* delta;
 
     centralMouseCube.rotation.y += -0.05* delta;
-    centralMouseCube.rotation.x += -0.09* delta;
+
+    centralRoachCube.rotation.x += -0.01* delta;
+
+
 
 
     
     // starField3.material.color.set(0x852121);
 
-    let raycasterArray = [cube1, cube2, projectionScreen.gltfScene]
+    let raycasterArray = [cube1, cube2, cube3, projectionScreen.gltfScene]
     // array of intersects objects for performance, so we don't have to calculate intersects on all scene.children
 
     // update the picking ray with the camera and mouse position
@@ -652,7 +793,7 @@ const animate = function animate () {
         zombieMouse.speech.play();
 
         // controls.target = zombieMouse.gltfScene.position;
-        alpha = 0;
+        alpha = 0;q
         destination = zombieMouse.gltfScene.position;
 
         scene.add(videoSphere);   
@@ -690,6 +831,17 @@ const animate = function animate () {
         // controls.target = zombieMouse.gltfScene.position;
         alpha = 0;
         destination = spaceWitch.gltfScene.position;   
+    }
+
+
+    
+    if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'cockroach-bounding-box'){
+        
+        console.log('cockroach witch Intersection click', intersects[0].object.name)
+
+        // controls.target = zombieMouse.gltfScene.position;
+        alpha = 0;
+        destination = cockroach.gltfScene.position;   
     }
     
     changeTarget();
