@@ -4,11 +4,13 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, camera, renderer, videoCube, videoSphere, controls, starField3, starFieldMaterial3, destination ;
+let scene, renderer, videoCube, videoSphere, controls, starField3, starFieldMaterial3, destination ;
 
 let centralCube, centralMouseCube, centralRoachCube;
 
-let cube1, cube2, cube3;
+let cube1, cube2, cube3, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint;
+
+let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera;
 
 
 let cockroach = {
@@ -47,6 +49,7 @@ let zombieMouse = {
 let spaceWitch= {
     gltfScene: null,
     boundingBox: null,
+    focalPoint: null,
     mesh: null,
     animations: null,
     materialMap: null,
@@ -128,8 +131,19 @@ function changeTarget(){
         alpha = 1;
     }
     controls.target.lerp(destination, alpha);
-    // console.log(alpha);
+    console.log(alpha);
 }
+
+
+function moveCameraCloserToTarget(){
+
+}
+
+// function lookAtCamera(){
+//     let cameraVector = camera.position;
+//     currentObject.lookAt(cameraVector);
+// }
+
 
 //Starfield
 function starField(){
@@ -214,21 +228,38 @@ function makeZombiMouseBoundingBox (){
     cube1.parent = zombieMouse.gltfScene;
     // console.log(zombieMouse.gltfScene);
 
-    // scene.add(cube1)
+    scene.add(cube1)
 }
 
 function makeSpaceWitchBoundingBox (){
     const geometry = new THREE.BoxGeometry(3,9,4);
     cube2= new THREE.Mesh(geometry);
-    // spaceWitch.boundingBox.visible = false;
+    cube2.visible = false;
     cube2.position.y=4;
     cube2.visible = false;
     cube2.name = 'space-witch-bounding-box';
     cube2.parent = spaceWitch.gltfScene;
-    console.log(cube2);
     scene.add(cube2);
+
+    // console.log(getBoundingBoxCenter (spaceWitch, cube2));
+
+ 
+ 
 }
 
+// function getBoundingBoxCenter (object, mesh){
+//     object.focalPoint = new THREE.Vector3();
+//     let geometry = mesh.geometry;
+//     geometry.computeBoundingBox();
+
+//     // object.focalPoint.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
+//     // object.focalPoint.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
+//     // object.focalPoint.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
+    
+//     mesh.localToWorld( object.focalPoint );
+
+//     return object.focalPoint;
+// }
 
 
 function makeCentralElement(){
@@ -264,13 +295,14 @@ function loadProjectionScreen (){
 
         gltf.scene.name = 'projection-screen';
         scene.add(gltf.scene);
-        console.log(projectionScreen.gltfScene.children[7])
         projectionScreen.mesh = projectionScreen.gltfScene.children[7];
         projectionScreen.material = projectionScreen.mesh.material;
         projectionScreen.originalMaterial = projectionScreen.mesh.material;
+        projectionScreen.gltfScene.position.x = 5;
+        projectionScreen.gltfScene.rotation.y = -2;
 
-        console.log(scene)
-        projectionScreen.gltfScene.rotation.y = -1;
+        cockroach.gltfScene.add(projectionScreen.gltfScene);
+
 
     
     }, undefined, function ( error ) {
@@ -284,6 +316,7 @@ function loadProjectionScreen (){
 function loadCockroach(){
     // Loading in zombie mouse model
     const loader = new GLTFLoader();
+
     loader.load('models/cockroach-combined-anim-1.gltf', function (gltf) {
         cockroach.gltfScene = gltf.scene;
         cockroach.gltfScene.position.x = 15;
@@ -300,7 +333,25 @@ function loadCockroach(){
 
         cockroachBoundingBox ();
         cockroach.gltfScene.add(cube3);
+        loadProjectionScreen();
 
+
+        cockroach.gltfScene.add(cockroachCamera);
+        cockroachCamera.position.x = 0;
+        cockroachCamera.position.y = 5;
+        cockroachCamera.position.z = 10;
+
+        let center = new THREE.Vector3(2,2,0);
+
+        // center.x += 10;
+
+        const geometry = new THREE.BoxGeometry(1,1,1);
+        cockroachFocalPoint = new THREE.Mesh(geometry);
+        cockroachFocalPoint.position.x = center.x;
+        cockroachFocalPoint.position.y = center.y;
+        cockroachFocalPoint.position.z = center.z;
+        cockroach.gltfScene.add(cockroachFocalPoint );
+        cockroachFocalPoint.visible = false;
        
         //Animations
        const tapeRecorder = cockroach.gltfScene.children.filter(function(m){return m.name=="tape-recorder"})[0];
@@ -352,8 +403,6 @@ function loadCockroach(){
     l2LegAction.play();
 
 
-
-
     makeCentralRoachElement()
     cockroach.gltfScene.parent = centralRoachCube;
 
@@ -374,18 +423,37 @@ function loadSpaceWitch(){
      // Loading in zombie mouse model
      const loader = new GLTFLoader();
      loader.load('models/space-witch-rehat-top-update.gltf', function (gltf) {
-         spaceWitch.gltfScene = gltf.scene;
-         spaceWitch.gltfScene.position.x = 10;
-         spaceWitch.gltfScene.position.y = 10;
-         spaceWitch.gltfScene.position.z = 10;
-         spaceWitch.gltfScene.name = 'Space Witch Scene';
+        spaceWitch.gltfScene = gltf.scene;
+        spaceWitch.gltfScene.position.x = 10;
+        spaceWitch.gltfScene.position.y = 10;
+        spaceWitch.gltfScene.position.z = 10;
+        spaceWitch.gltfScene.name = 'Space Witch Scene';
  
-         spaceWitch.animations = gltf.animations;
+        spaceWitch.animations = gltf.animations;
  
-         scene.add(gltf.scene);
+        scene.add(gltf.scene);
         
         makeSpaceWitchBoundingBox();
         spaceWitch.gltfScene.add(cube2);
+        spaceWitch.gltfScene.add(spaceWitchCamera);
+        spaceWitchCamera.position.x = -15;
+        spaceWitchCamera.position.y = 5;
+        spaceWitchCamera.position.z = 0;
+
+        let center = new THREE.Vector3(0,5,0);
+
+        // center.x += 10;
+
+        const geometry = new THREE.BoxGeometry(2,2,2);
+        spaceWitchFocalPoint = new THREE.Mesh(geometry);
+        spaceWitchFocalPoint.position.x = center.x;
+        spaceWitchFocalPoint.position.y = center.y;
+        spaceWitchFocalPoint.position.z = center.z;
+        spaceWitch.gltfScene.add(spaceWitchFocalPoint );
+        spaceWitchFocalPoint.visible = false;
+
+
+
          //Animations
         const leftArm = spaceWitch.gltfScene.children.filter(function(m){return m.name=="left-arm-armature"})[0];
         leftArm.animation = spaceWitch.animations.filter(function(m){return m.name=="Armature.002Action.001"})[0];
@@ -453,6 +521,24 @@ function loadZombieMouse(){
 
         makeZombiMouseBoundingBox ();
         zombieMouse.gltfScene.add(cube1);
+
+        zombieMouse.gltfScene.add(zombieMouseCamera);
+        zombieMouseCamera.position.x = 18;
+        zombieMouseCamera.position.y = 5;
+        zombieMouseCamera.position.z = 5;
+
+        let center = new THREE.Vector3(0,5,-3);
+
+        // center.x += 10;
+
+        const geometry = new THREE.BoxGeometry(4,4,4);
+        zombieMouseFocalPoint = new THREE.Mesh(geometry);
+        zombieMouseFocalPoint.position.x = center.x;
+        zombieMouseFocalPoint.position.y = center.y;
+        zombieMouseFocalPoint.position.z = center.z;
+        zombieMouse.gltfScene.add(zombieMouseFocalPoint);
+        zombieMouseFocalPoint.visible = false;
+
         
         // console.log(zombieMouse.gltfScene)
 
@@ -528,7 +614,14 @@ function audioControls (){
 function init(){
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    
+    camera.name = 'global-camera';
+    spaceWitchCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    spaceWitchCamera.name = 'space-witch-camera';
+    cockroachCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    cockroachCamera.name = 'cockroach-camera';
+    zombieMouseCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    zombieMouseCamera.name = 'zombie-mouse-camera';
+    currentCamera = camera;
 
     renderer = new THREE.WebGLRenderer({antialias: true});
     // renderer.setClearColor('red');
@@ -562,7 +655,7 @@ function init(){
     // Controls
     controls = new OrbitControls(camera, renderer.domElement );
     controls.enableDamping = true;
-    controls.dampingFactor = 0.02;
+    controls.dampingFactor = 0.0002;
     destination = controls.target;    
     
     //Light
@@ -583,22 +676,16 @@ function init(){
     starField();
 
     loadZombieMouse();
-
-    loadProjectionScreen ();
     
     loadSpaceWitch();
 
-    loadCockroach()
-    
-
+    loadCockroach();
    
 
     zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg');
     zombieMouse.hoverMaterial = new THREE.MeshStandardMaterial({map: zombieMouse.hoverTexture});
 
     spaceWitch.hoverMaterial = new THREE.MeshBasicMaterial();
-
-    
     
 
     //make starfield
@@ -702,19 +789,31 @@ function init(){
 
     window.addEventListener('resize', onWindowResize, false);
 
+    // this makes it possible to actually get close to objects in orbital controls instead of infinetly slowing down as you approach
+    controls.dollyOut = function(){
+        this.object.position.z -= 100;
+    }
+    controls.dollyIn = function(){
+        this.object.position.z += 100;
+    }
+
 };
+
+let currentTarget;
+let currentObject;
+let currentCamera;
+
 
 
 const animate = function animate () { 
     requestAnimationFrame(animate);
-    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene){return;}
+    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene||!projectionScreen.gltfScene){return;}
 
     delta = clock.getDelta();
     zombieMouse.mixer.update (delta);
     spaceWitch.mixer.update (delta);
     cockroach.mixer.update (delta);
  
-
     // todo deltaSeconds
   
     zombieMouse.gltfScene.rotation.x += 0.2 * delta;
@@ -734,9 +833,7 @@ const animate = function animate () {
 
     centralMouseCube.rotation.y += -0.05* delta;
 
-    centralRoachCube.rotation.x += -0.01* delta;
-
-
+    centralRoachCube.rotation.x += -0.03* delta;
 
 
     
@@ -746,7 +843,7 @@ const animate = function animate () {
     // array of intersects objects for performance, so we don't have to calculate intersects on all scene.children
 
     // update the picking ray with the camera and mouse position
-	raycaster.setFromCamera( mouse, camera );
+	raycaster.setFromCamera( mouse, currentCamera );
 
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects( raycasterArray, true );
@@ -762,15 +859,15 @@ const animate = function animate () {
         projectionScreen.mesh.material = projectionScreen.videoMaterial;
         console.log(projectionScreen.mesh.material);
 
-        alpha = 0;
-        destination = projectionScreen.gltfScene.position;
+        // alpha = 0;
+        // destination = projectionScreen.gltfScene.position;
 
     }
 
-    if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'Plane'){
-        alpha = 0;
-        destination = projectionScreen.gltfScene.position;
-    }
+    // if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'Plane'){
+    //     alpha = 0;
+    //     destination = projectionScreen.gltfScene.position;
+    // }
 
 
     if(intersects.length > 0 && intersects[0].object.name=='zombie-mouse-bounding-box'){
@@ -792,18 +889,19 @@ const animate = function animate () {
         console.log('Intersection click', intersects[0].object.name)
         zombieMouse.speech.play();
 
-        // controls.target = zombieMouse.gltfScene.position;
-        alpha = 0;q
-        destination = zombieMouse.gltfScene.position;
 
         scene.add(videoSphere);   
         const video = document.getElementById('video-1');
         video.play();
-
         video.addEventListener('ended', function(){
             scene.remove(videoSphere);
     
         });
+
+        currentCamera = zombieMouseCamera;
+        currentObject = zombieMouse.gltfScene;
+        currentTarget = cube1;
+        alpha = 0;
 
 
         //silent audio and captions play
@@ -813,8 +911,6 @@ const animate = function animate () {
 
     if(intersects.length > 0 && intersects[0].object.name=='space-witch-bounding-box'){
         console.log('space-witch-hover');
-        
- 
 
         spaceWitch.hat.mesh.material=spaceWitch.hoverMaterial;
 
@@ -827,10 +923,10 @@ const animate = function animate () {
     if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'space-witch-bounding-box'){
         
         console.log('space witch Intersection click', intersects[0].object.name)
-
-        // controls.target = zombieMouse.gltfScene.position;
+        currentCamera = spaceWitchCamera;
+        currentObject = spaceWitch.gltfScene;
+        currentTarget = cube2;
         alpha = 0;
-        destination = spaceWitch.gltfScene.position;   
     }
 
 
@@ -838,18 +934,48 @@ const animate = function animate () {
     if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'cockroach-bounding-box'){
         
         console.log('cockroach witch Intersection click', intersects[0].object.name)
-
-        // controls.target = zombieMouse.gltfScene.position;
+    
+        currentCamera = cockroachCamera;
         alpha = 0;
-        destination = cockroach.gltfScene.position;   
+        currentTarget = cube3;
+        currentObject = cockroach.gltfScene;
+        camera.lookAt(currentObject);
+
+
+    }
+
+    if (mouse.click && intersects.length == 0){
+            
+        currentCamera = camera;
+
     }
     
+
+    if (currentTarget){
+        let vector = currentTarget.geometry.vertices[0].clone();
+        vector.applyMatrix4(currentTarget.matrixWorld );
+        destination = vector;   
+    }
+
+    let vector1 = spaceWitchFocalPoint.geometry.vertices[0].clone();
+    vector1.applyMatrix4(spaceWitchFocalPoint.matrixWorld); 
+    spaceWitchCamera.lookAt(vector1);
+
+    let vector2 = cockroachFocalPoint.geometry.vertices[0].clone();
+    vector2.applyMatrix4(cockroachFocalPoint.matrixWorld); 
+    cockroachCamera.lookAt(vector2);
+
+    let vector3 = zombieMouseFocalPoint.geometry.vertices[0].clone();
+    vector3.applyMatrix4(zombieMouseFocalPoint.matrixWorld); 
+    zombieMouseCamera.lookAt(vector3);
+ 
+
     changeTarget();
 
     controls.update();
 
     
-    renderer.render(scene, camera);
+    renderer.render(scene, currentCamera);
 
     mouse.click = false;
 
