@@ -4,11 +4,11 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, renderer, videoCube, videoSphere, controls, starField3, starFieldMaterial3, destination, testcube, cameraTestCube;
+let scene, renderer, videoCube, videoSphere, controls, starFieldMaterial3, destination, testcube, cameraTestCube;
 
 let centralCube, centralMouseCube, centralRoachCube;
 
-let cube1, cube2, cube3, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint;
+let cube1, cube2, cube3, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, initialDestination, quaternionDestination, initialCameraCube;
 
 let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera;
 
@@ -124,38 +124,109 @@ button.addEventListener('click', runProgram, false);
 
 //changing orbital controls target
 let alpha=1;
+let alphaThreshold= 0.1;
 function changeTarget(){
-    alpha = alpha + 0.1*delta;
+    
+    alpha = alpha + 0.01*delta;
 
-    if(alpha > 0.15){
+    // if (alpha > 0.1){
+    //     currentTarget=null;
+    // }
+
+    if(alpha > alphaThreshold){
         
         // currentCamera=zombieMouseCamera;
         alpha = 1;
+        // currentTarget=null;
+
     }
 
-    // let localDestination = destination.clone();
-    // testcube.worldToLocal(localDestination);
-    // // camera.position.set(localDestination.x, localDestination.y, localDestination.z);
-    // console.log(localDestination);
-
     camera.position.lerp(destination.clone(), alpha);
-    // testcube.position.set(localDestination.x, localDestination.y, localDestination.z);
 
     controls.target.lerp(focalPointDestination, alpha);
 
-    console.log(destination);
+    camera.quaternion.slerp(quaternionDestination, alpha);
 
+    // console.log(camera.position)
     
 }
 
+function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
+{	
+	// note: texture passed by reference, will be updated by the update function.
+		
+	this.tilesHorizontal = tilesHoriz;
+	this.tilesVertical = tilesVert;
+	// how many images does this spritesheet contain?
+	//  usually equals tilesHoriz * tilesVert, but not necessarily,
+	//  if there at blank tiles at the bottom of the spritesheet. 
+	this.numberOfTiles = numTiles;
+	texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
+	texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
+
+	// how long should each image be displayed?
+	this.tileDisplayDuration = tileDispDuration;
+
+	// how long has the current image been displayed?
+	this.currentDisplayTime = 0;
+
+	// which image is currently being displayed?
+	this.currentTile = 0;
+		
+	this.update = function( milliSec )
+	{
+		this.currentDisplayTime += milliSec;
+		while (this.currentDisplayTime > this.tileDisplayDuration)
+		{
+			this.currentDisplayTime -= this.tileDisplayDuration;
+			this.currentTile++;
+			if (this.currentTile == this.numberOfTiles)
+				this.currentTile = 0;
+			var currentColumn = this.currentTile % this.tilesHorizontal;
+			texture.offset.x = currentColumn / this.tilesHorizontal;
+			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
+			texture.offset.y = currentRow / this.tilesVertical;
+		}
+	};
+}	
+
+//roach group
+let roachTextureAnimation
+let roachAlphaAnimation
+function roachBabies(){
+    const roachTexture = new THREE.TextureLoader().load('texture/anim-cockroach.png')
+    const roachAlphaMap = new THREE.TextureLoader().load('texture/anim-cockroach-alpha-map.png')
+    roachTextureAnimation = new TextureAnimator( roachTexture, 12, 1, 12, 110 ); // texture, #horiz, #vert, #total, duration.
+    roachAlphaAnimation = new TextureAnimator( roachAlphaMap, 12, 1, 12, 110 ); // texture, #horiz, #vert, #total, duration.
 
 
+    const roachGeometry = new THREE.SphereGeometry(8,5,6);
+    for (let i = 0; i < 30; i++) {
+        const vertex = new THREE.Vector3();
+        // vertex.x = Math.random()*5-50;
+        // vertex.y = Math.random()*5-50;
+        // vertex.z = Math.random()*5-50;
+        roachGeometry.vertices.push(vertex);
+    }
+    const material = new THREE.PointsMaterial({
+        transparent: true,
+        alphaMap: roachAlphaMap,
+        map: roachTexture,
+        size: 2.5,
+        color: 0xffffff
+        })
+    material.side =  THREE.BackSide;
 
-// function lookAtCamera(){
-//     let cameraVector = camera.position;
-//     currentObject.lookAt(cameraVector);
-// }
+    const roachBabies = new THREE.Points(roachGeometry, material);
+    cockroach.gltfScene.add(roachBabies);   
+    roachBabies.position.x = 1; 
+    roachBabies.position.y = 4;
+    roachBabies.position.z = -5; 
 
+}
+
+
+let starField1, starField2, starField3;
 
 //Starfield
 function starField(){
@@ -169,14 +240,14 @@ function starField(){
         vertex.z = Math.random()*1000-500;
         starGeometry.vertices.push(vertex);
     }
-    const starField = new THREE.Points(starGeometry, new THREE.PointsMaterial({
+    starField1 = new THREE.Points(starGeometry, new THREE.PointsMaterial({
         map: starDisk,
         size: 0.1,
         color: 0xffffff
         })
     ); 
-    scene.add(starField);
-    starField.position.z = 100;
+    scene.add(starField1);
+    starField1.position.z = 100;
 
 
     const starGeometry2 = new THREE.Geometry();
@@ -187,7 +258,7 @@ function starField(){
         vertex.z = Math.random()*1000-800;
         starGeometry2.vertices.push(vertex);
     }
-    const starField2 = new THREE.Points(starGeometry2, new THREE.PointsMaterial({
+    starField2 = new THREE.Points(starGeometry2, new THREE.PointsMaterial({
         map: starDisk,
         size: 0.7,
         color: 0xa8e6ff
@@ -299,6 +370,18 @@ function makeCentralRoachElement(){
     scene.add(centralRoachCube);
 }
 
+function makeInitialCameraCube(){
+    const geometry = new THREE.BoxGeometry(1,1,1);
+    initialCameraCube = new THREE.Mesh(geometry);
+    initialCameraCube.position.z= 35;
+    initialCameraCube.position.x= 35;
+    initialCameraCube.position.y= 35;
+
+    initialCameraCube.name = 'initial camera cube'
+    initialCameraCube.visible = false;
+    scene.add(initialCameraCube);
+
+}
 
 function loadProjectionScreen (){
     const loader = new GLTFLoader();
@@ -346,6 +429,8 @@ function loadCockroach(){
         cockroachBoundingBox ();
         cockroach.gltfScene.add(cube3);
         loadProjectionScreen();
+        
+        roachBabies();
 
 
         cockroach.gltfScene.add(cockroachCamera);
@@ -676,14 +761,15 @@ function init(){
     controls = new OrbitControls(camera, renderer.domElement );
     controls.enableDamping = true;
     controls.dampingFactor = 0.02;
-    destination = new THREE.Vector3(10,10,10);    
+    initialDestination = new THREE.Vector3(10,10,10);
+    destination =  initialDestination;   
     
     //Light
     const light = new THREE.PointLight(0xFFFFFF, 1, 500);
     light.position.set(10, 0, 25);
     scene.add(light);
 
-    camera.position.z = 40;
+    camera.position.z = 1000;
 
 
     // put this in later w timing for narrative
@@ -701,6 +787,7 @@ function init(){
 
     loadCockroach();
    
+    makeInitialCameraCube()
 
     zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg');
     zombieMouse.hoverMaterial = new THREE.MeshStandardMaterial({map: zombieMouse.hoverTexture});
@@ -829,12 +916,23 @@ let currentTarget;
 let currentCamera;
 let currentFocalPoint;
 let focalPointDestination;
+let doOnce = 1;
 
 
 
 const animate = function animate () { 
     requestAnimationFrame(animate);
-    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene||!projectionScreen.gltfScene){return;}
+    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene||!projectionScreen.gltfScene ||!starField1 ||!starField2 ||!starField3 ){return;}
+
+    if (doOnce==1){
+        console.log(camera.position);
+        currentTarget = initialCameraCube;
+        currentFocalPoint=centralCube;
+        alpha = 0;
+        doOnce = null;
+    }
+
+
 
     delta = clock.getDelta();
     zombieMouse.mixer.update (delta);
@@ -863,9 +961,6 @@ const animate = function animate () {
     centralRoachCube.rotation.x += -0.03* delta;
 
 
-    
-    // starField3.material.color.set(0x852121);
-
     let raycasterArray = [cube1, cube2, cube3, projectionScreen.gltfScene]
     // array of intersects objects for performance, so we don't have to calculate intersects on all scene.children
 
@@ -875,9 +970,6 @@ const animate = function animate () {
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects( raycasterArray, true );
 
-    // if(intersects.length > 0){
-    //     console.log('cube intersected');
-    // }
 
     if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'screen'){
         console.log(projectionScreen.mesh.material);
@@ -885,9 +977,6 @@ const animate = function animate () {
         projectionScreen.video.play();
         projectionScreen.mesh.material = projectionScreen.videoMaterial;
         console.log(projectionScreen.mesh.material);
-
-        // alpha = 0;
-        // destination = projectionScreen.gltfScene.position;
 
     }
 
@@ -929,6 +1018,7 @@ const animate = function animate () {
         currentFocalPoint = zombieMouseFocalPoint;
         currentTarget = zombieMouseCamera;
         alpha = 0;
+        alphaThreshold= 0.15
 
 
         //silent audio and captions play
@@ -955,6 +1045,7 @@ const animate = function animate () {
 
         currentTarget = spaceWitchCamera;
         alpha = 0;
+        alphaThreshold= 0.15
     }
 
 
@@ -967,6 +1058,7 @@ const animate = function animate () {
         // currentCamera = cockroachCamera;
         currentFocalPoint = cockroachFocalPoint;
         alpha = 0;
+        alphaThreshold= 0.15
         currentTarget = cockroachCamera;
         // controls.enabled = false;
 
@@ -975,9 +1067,8 @@ const animate = function animate () {
 
     if (mouse.click && intersects.length == 0){
             
-        // currentCamera = camera;
-        // currentFocalPoint = centralCube;
-
+        destination = initialDestination;
+        currentFocalPoint = null;
 
     }
     
@@ -988,17 +1079,15 @@ const animate = function animate () {
 
         let vector = new THREE.Vector3();
         currentTarget.getWorldPosition(vector);
-        
-        // let vector = new THREE.Vector3();
-        // cameraTestCube.getWorldPosition(vector);
-        // vector.applyMatrix4(cameraTestCube.matrixWorld );
         destination = vector;
 
         let vector1 = new THREE.Vector3();
         currentFocalPoint.getWorldPosition(vector1);
-        // let vector1 = currentFocalPoint.position.clone();
-        // vector1.applyMatrix4(currentFocalPoint.matrixWorld );
         focalPointDestination = vector1;
+
+        let quaternion = new THREE.Quaternion();
+        currentTarget.getWorldQuaternion( quaternion);
+        quaternionDestination =  quaternion;
         
         changeTarget();
     }
@@ -1017,6 +1106,9 @@ const animate = function animate () {
     vector3.applyMatrix4(zombieMouseFocalPoint.matrixWorld); 
     zombieMouseCamera.lookAt(vector3);
  
+    roachTextureAnimation.update(1000 * delta);
+    roachAlphaAnimation.update(1000 * delta);
+
 
 
     controls.update();
