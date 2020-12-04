@@ -4,7 +4,7 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
-let scene, renderer, videoCube, videoSphere, controls, starField3, starFieldMaterial3, destination ;
+let scene, renderer, videoCube, videoSphere, controls, starField3, starFieldMaterial3, destination, testcube, cameraTestCube;
 
 let centralCube, centralMouseCube, centralRoachCube;
 
@@ -128,16 +128,28 @@ function changeTarget(){
     alpha = alpha + 0.1*delta;
 
     if(alpha > 0.15){
+        
+        // currentCamera=zombieMouseCamera;
         alpha = 1;
     }
-    controls.target.lerp(destination, alpha);
-    console.log(alpha);
+
+    // let localDestination = destination.clone();
+    // testcube.worldToLocal(localDestination);
+    // // camera.position.set(localDestination.x, localDestination.y, localDestination.z);
+    // console.log(localDestination);
+
+    camera.position.lerp(destination.clone(), alpha);
+    // testcube.position.set(localDestination.x, localDestination.y, localDestination.z);
+
+    controls.target.lerp(focalPointDestination, alpha);
+
+    console.log(destination);
+
+    
 }
 
 
-function moveCameraCloserToTarget(){
 
-}
 
 // function lookAtCamera(){
 //     let cameraVector = camera.position;
@@ -527,17 +539,24 @@ function loadZombieMouse(){
         zombieMouseCamera.position.y = 5;
         zombieMouseCamera.position.z = 5;
 
+
         let center = new THREE.Vector3(0,5,-3);
 
         // center.x += 10;
 
-        const geometry = new THREE.BoxGeometry(4,4,4);
+        const geometry = new THREE.BoxGeometry(2,2,2);
         zombieMouseFocalPoint = new THREE.Mesh(geometry);
         zombieMouseFocalPoint.position.x = center.x;
         zombieMouseFocalPoint.position.y = center.y;
         zombieMouseFocalPoint.position.z = center.z;
         zombieMouse.gltfScene.add(zombieMouseFocalPoint);
         zombieMouseFocalPoint.visible = false;
+
+        // cameraTestCube = new THREE.Mesh(geometry);
+        // cameraTestCube.position.x = 18;
+        // cameraTestCube.position.y = 5;
+        // cameraTestCube.position.z = 5;
+        // zombieMouse.gltfScene.add(cameraTestCube);
 
         
         // console.log(zombieMouse.gltfScene)
@@ -614,6 +633,7 @@ function audioControls (){
 function init(){
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    scene.add(camera);
     camera.name = 'global-camera';
     spaceWitchCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
     spaceWitchCamera.name = 'space-witch-camera';
@@ -655,8 +675,8 @@ function init(){
     // Controls
     controls = new OrbitControls(camera, renderer.domElement );
     controls.enableDamping = true;
-    controls.dampingFactor = 0.0002;
-    destination = controls.target;    
+    controls.dampingFactor = 0.02;
+    destination = new THREE.Vector3(10,10,10);    
     
     //Light
     const light = new THREE.PointLight(0xFFFFFF, 1, 500);
@@ -797,11 +817,18 @@ function init(){
         this.object.position.z += 100;
     }
 
-};
+    function makeTestCube(){
+        const geometry = new THREE.BoxGeometry(2,2,2);
+        testcube = new THREE.Mesh(geometry);
+        scene.add(testcube);
+    }
+    // makeTestCube()
+ };
 
 let currentTarget;
-let currentObject;
 let currentCamera;
+let currentFocalPoint;
+let focalPointDestination;
 
 
 
@@ -898,9 +925,9 @@ const animate = function animate () {
     
         });
 
-        currentCamera = zombieMouseCamera;
-        currentObject = zombieMouse.gltfScene;
-        currentTarget = cube1;
+        // currentCamera = zombieMouseCamera;
+        currentFocalPoint = zombieMouseFocalPoint;
+        currentTarget = zombieMouseCamera;
         alpha = 0;
 
 
@@ -923,9 +950,10 @@ const animate = function animate () {
     if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'space-witch-bounding-box'){
         
         console.log('space witch Intersection click', intersects[0].object.name)
-        currentCamera = spaceWitchCamera;
-        currentObject = spaceWitch.gltfScene;
-        currentTarget = cube2;
+        // currentCamera = spaceWitchCamera;
+        currentFocalPoint = spaceWitchFocalPoint;
+
+        currentTarget = spaceWitchCamera;
         alpha = 0;
     }
 
@@ -934,28 +962,48 @@ const animate = function animate () {
     if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'cockroach-bounding-box'){
         
         console.log('cockroach witch Intersection click', intersects[0].object.name)
+
     
-        currentCamera = cockroachCamera;
+        // currentCamera = cockroachCamera;
+        currentFocalPoint = cockroachFocalPoint;
         alpha = 0;
-        currentTarget = cube3;
-        currentObject = cockroach.gltfScene;
-        camera.lookAt(currentObject);
+        currentTarget = cockroachCamera;
+        // controls.enabled = false;
 
 
     }
 
     if (mouse.click && intersects.length == 0){
             
-        currentCamera = camera;
+        // currentCamera = camera;
+        // currentFocalPoint = centralCube;
+
 
     }
     
 
-    if (currentTarget){
-        let vector = currentTarget.geometry.vertices[0].clone();
-        vector.applyMatrix4(currentTarget.matrixWorld );
-        destination = vector;   
+    if (currentTarget && currentFocalPoint){
+
+        currentTarget.updateMatrixWorld();
+
+        let vector = new THREE.Vector3();
+        currentTarget.getWorldPosition(vector);
+        
+        // let vector = new THREE.Vector3();
+        // cameraTestCube.getWorldPosition(vector);
+        // vector.applyMatrix4(cameraTestCube.matrixWorld );
+        destination = vector;
+
+        let vector1 = new THREE.Vector3();
+        currentFocalPoint.getWorldPosition(vector1);
+        // let vector1 = currentFocalPoint.position.clone();
+        // vector1.applyMatrix4(currentFocalPoint.matrixWorld );
+        focalPointDestination = vector1;
+        
+        changeTarget();
     }
+
+
 
     let vector1 = spaceWitchFocalPoint.geometry.vertices[0].clone();
     vector1.applyMatrix4(spaceWitchFocalPoint.matrixWorld); 
@@ -970,7 +1018,6 @@ const animate = function animate () {
     zombieMouseCamera.lookAt(vector3);
  
 
-    changeTarget();
 
     controls.update();
 
