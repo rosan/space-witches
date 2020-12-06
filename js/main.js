@@ -67,10 +67,13 @@ let spaceWitch= {
 }
 
 let mouse = {
+    position: new THREE.Vector2(1,1),
     click: null,
     move: null,
     over: null,
     down: null,
+    wheel: null,
+    hoverTouch: null,
 }
 
 let projectionScreen = {
@@ -90,7 +93,6 @@ let projectionScreen = {
 }
 
 const raycaster = new THREE.Raycaster();
-mouse = new THREE.Vector2(1,1);
 
 const clock = new THREE.Clock();
 let delta = 0;
@@ -231,6 +233,8 @@ let starField1, starField2, starField3;
 //Starfield
 function starField(){
     const starDisk = new THREE.TextureLoader().load( 'texture/disc.png' );
+    const starDiskAlpha = new THREE.TextureLoader().load( 'texture/disc-alpha.png' );
+
 
     const starGeometry = new THREE.Geometry();
     for (let i = 0; i < 2000; i++) {
@@ -241,8 +245,10 @@ function starField(){
         starGeometry.vertices.push(vertex);
     }
     starField1 = new THREE.Points(starGeometry, new THREE.PointsMaterial({
+        // transparent: true,
+        // alphaMap: starDiskAlpha,
         map: starDisk,
-        size: 0.1,
+        size: 0.5,
         color: 0xffffff
         })
     ); 
@@ -259,6 +265,8 @@ function starField(){
         starGeometry2.vertices.push(vertex);
     }
     starField2 = new THREE.Points(starGeometry2, new THREE.PointsMaterial({
+        // transparent: true,
+        // alphaMap: starDisk,
         map: starDisk,
         size: 0.7,
         color: 0xa8e6ff
@@ -277,6 +285,8 @@ function starField(){
         starGeometry3.vertices.push(vertex);
     }
     starFieldMaterial3 = new THREE.PointsMaterial({
+        // transparent: true,
+        // alphaMap: starDisk,
         map: starDisk,
         size: 0.4,
         color: 0xffc47d
@@ -859,10 +869,9 @@ function init(){
     function onMouseMove( event ) {
         // calculate mouse position in normalized device coordinates
         // (-1 to +1) for both components
-        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;   
-        // console.log(event.buttons);
-        
+        mouse.position.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.position.y = - ( event.clientY / window.innerHeight ) * 2 + 1;   
+        // console.log(event.buttons);    
     }
 
     function onMouseOver( event ){
@@ -880,10 +889,35 @@ function init(){
         console.log('mouse click');	
     }
 
+    function onTouchStart ( event ){
+        mouse.click = true;
+        mouse.hoverTouch = true;
+        setTimeout(function (){
+            mouse.hoverTouch = false;
+        }, 250)
+        
+        console.log('touch start');	
+        mouse.position.x = ( event.touches[0].clientX / window.innerWidth ) * 2 - 1;
+        mouse.position.y = - ( event.touches[0].clientY / window.innerHeight ) * 2 + 1;
+
+    }
+
+
+    
+    function onWheel ( event ){
+        mouse.wheel = true;
+        console.log('mouse wheel');	
+    }
+
+
+
     window.addEventListener( 'mousemove', onMouseMove, false );
     window.addEventListener( 'mouseover', onMouseOver, false );
     window.addEventListener( 'mouseout', onMouseOut, false );
-    window.addEventListener( 'click', onMouseClick, false );
+    controls.domElement.addEventListener( 'click', onMouseClick, false );
+    controls.domElement.addEventListener('wheel', onWheel, false);
+    controls.domElement.addEventListener('touchstart', onTouchStart, false);
+
 
     //resize canvas with window
     function onWindowResize(){
@@ -922,7 +956,7 @@ let doOnce = 1;
 
 const animate = function animate () { 
     requestAnimationFrame(animate);
-    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene||!projectionScreen.gltfScene ||!starField1 ||!starField2 ||!starField3 ){return;}
+    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene||!projectionScreen.gltfScene ){return;}
 
     if (doOnce==1){
         console.log(camera.position);
@@ -965,7 +999,7 @@ const animate = function animate () {
     // array of intersects objects for performance, so we don't have to calculate intersects on all scene.children
 
     // update the picking ray with the camera and mouse position
-	raycaster.setFromCamera( mouse, currentCamera );
+	raycaster.setFromCamera( mouse.position, currentCamera );
 
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects( raycasterArray, true );
@@ -985,14 +1019,14 @@ const animate = function animate () {
     //     destination = projectionScreen.gltfScene.position;
     // }
 
-
-    if(intersects.length > 0 && intersects[0].object.name=='zombie-mouse-bounding-box'){
+    if(intersects.length > 0 && intersects[0].object.name=='zombie-mouse-bounding-box'&& (mouse.hoverTouch === null || mouse.hoverTouch)){
         // console.log(controls.target);
 
         zombieMouse.hoverTexture.wrapS = THREE.RepeatWrapping;
         zombieMouse.hoverTexture.wrapT = THREE.RepeatWrapping;
         zombieMouse.hoverTexture.flipY = false;
         zombieMouse.mesh[0].material.map = zombieMouse.hoverTexture;
+
     }
     else{
         zombieMouse.mesh[0].material.map = zombieMouse.materialMap;
@@ -1026,7 +1060,7 @@ const animate = function animate () {
         audio.play();    
     }
 
-    if(intersects.length > 0 && intersects[0].object.name=='space-witch-bounding-box'){
+    if(intersects.length > 0 && intersects[0].object.name=='space-witch-bounding-box' && (mouse.hoverTouch === null || mouse.hoverTouch)){
         console.log('space-witch-hover');
 
         spaceWitch.hat.mesh.material=spaceWitch.hoverMaterial;
@@ -1069,7 +1103,11 @@ const animate = function animate () {
             
         destination = initialDestination;
         currentFocalPoint = null;
-
+    }
+    else if (mouse.wheel&& intersects.length == 0){
+            
+        destination = initialDestination;
+        currentFocalPoint = null;
     }
     
 
@@ -1117,6 +1155,7 @@ const animate = function animate () {
     renderer.render(scene, currentCamera);
 
     mouse.click = false;
+    mouse.wheel = false;
 
 };
 
