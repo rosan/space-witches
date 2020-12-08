@@ -739,6 +739,7 @@ function audioControls (directory, audioNumber){
     // audioControls.setAttribute('controls', true);
     audioControls.id = `${directory}-${audioNumber}`;
     document.body.appendChild(audioControls);
+    audioControls.muted = true;
 
     const source = document.createElement('source');
     source.setAttribute('src', `Audio/${directory}/0${audioNumber}.mp3`)//Make same length but silent and put here
