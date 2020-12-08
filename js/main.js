@@ -12,6 +12,8 @@ let cube1, cube2, cube3, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseF
 
 let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera;
 
+let currentlyPlaying;
+
 
 let cockroach = {
     gltfScene: null,
@@ -32,6 +34,7 @@ let cockroach = {
     },
     clickAnimationOne: null,
     clickAnimationTwo: null,
+    stateCounter: 0,
 
 }
 
@@ -128,7 +131,7 @@ button.addEventListener('click', runProgram, false);
 
 //changing orbital controls target
 let alpha=1;
-let alphaThreshold= 0.05;
+let alphaThreshold= 0.5;
 let postLerpAction; 
 function changeTarget(){
     
@@ -138,17 +141,24 @@ function changeTarget(){
     //     currentTarget=null;
     // }
 
-    if(alpha > alphaThreshold){
-        
-        // currentCamera=zombieMouseCamera;
-        alpha = 1;
+    if (alpha > 0.03){
         if (postLerpAction){
             postLerpAction();
             postLerpAction = null;
         }
+    }
+
+
+    if(alpha > alphaThreshold){
+        
+        // currentCamera=zombieMouseCamera;
+        alpha = 1;
+
+
         // currentTarget=null;
 
     }
+
 
     camera.position.lerp(destination.clone(), alpha);
 
@@ -156,7 +166,7 @@ function changeTarget(){
 
     camera.quaternion.slerp(quaternionDestination, alpha);
 
-    console.log(alpha)
+    // console.log(alpha)
     
 }
 
@@ -413,6 +423,17 @@ function loadProjectionScreen (){
         projectionScreen.gltfScene.position.x = 5;
         projectionScreen.gltfScene.rotation.y = -2;
 
+        const projectionScreenLight = new THREE.PointLight( 0x3461eb, 0.5, 100 );
+        projectionScreenLight.position.set( 0.5, 3.5, 0);
+
+        projectionScreen.gltfScene.add( projectionScreenLight );
+
+        // const geometry = new THREE.BoxGeometry(1,1,1);
+        // const box = new THREE.Mesh(geometry)
+        // box.position.set( 0.5, 3.5, 0);
+
+        // projectionScreen.gltfScene.add(box);
+
         cockroach.gltfScene.add(projectionScreen.gltfScene);
 
 
@@ -448,6 +469,10 @@ function loadCockroach(){
         loadProjectionScreen();
         
         roachBabies();
+
+        const cockroachLight = new THREE.PointLight( 0xff0000, 0.1, 100 );
+        cockroachLight.position.set( 2, 2, 2 );
+        cockroach.gltfScene.add( cockroachLight );
 
         // cockroach.gltfScene.add( zombieMouse.sound);
 
@@ -702,9 +727,35 @@ function runProgram (event) {
 }
 
 //get captions working with audio player
-function captionCapture(){
-    const audio = document.getElementById("audio-1");
-    audio.textTracks[0].addEventListener('cuechange', function(){
+function startCaptions(directory, audioNumber){
+    const audio = document.getElementById(`${directory}-${audioNumber}`);
+    audio.play(); 
+}
+
+
+//plays at same time as on click audio to facilitate captions (AudioListerner does not have captions support)
+function audioControls (directory, audioNumber){
+    const audioControls = document.createElement("audio");
+    // audioControls.setAttribute('controls', true);
+    audioControls.id = `${directory}-${audioNumber}`;
+    document.body.appendChild(audioControls);
+
+    const source = document.createElement('source');
+    source.setAttribute('src', `Audio/${directory}/0${audioNumber}.mp3`)//Make same length but silent and put here
+    source.setAttribute('src', `Audio/${directory}/0${audioNumber}.ogg`)//Make same length but silent and put here
+    source.setAttribute('type', 'audio/mpeg')
+    audioControls.appendChild(source);
+
+    const track = document.createElement("track");
+    track.setAttribute('kind', 'captions');
+    track.setAttribute('src', `captions/${directory}/0${audioNumber}.vtt`);
+    track.setAttribute('label', 'English');
+    track.setAttribute('default', 'true');
+    audioControls.appendChild(track);
+
+    audioControls.textTracks[0].addEventListener('cuechange', function(){
+        console.log(directory);
+        console.log(audioNumber);
         if (this.activeCues.length>0){
             document.getElementById('caption-display').innerText = this.activeCues[0].text;
             console.log(this.activeCues[0].text);
@@ -714,42 +765,14 @@ function captionCapture(){
             console.log('silence');
         }
 
-
     },false)
-}
-
-//plays at same time as on click audio to facilitate captions (AudioListerner does not have captions support)
-function audioControls (){
-    const audioControls = document.createElement("audio");
-    // audioControls.setAttribute('controls', true);
-    audioControls.id = "audio-1";
-    document.body.appendChild(audioControls);
-
-    const source = document.createElement('source');
-    source.setAttribute('src', 'Audio/Test-recording.mp3')//Make same length but silent and put here
-    source.setAttribute('src', 'Audio/Test-recording.ogg')//Make same length but silent and put here
-    source.setAttribute('type', 'audio/mpeg')
-    audioControls.appendChild(source);
-
-    const track = document.createElement("track");
-    track.setAttribute('kind', 'captions');
-    track.setAttribute('src', 'captions/test.vtt');
-    track.setAttribute('label', 'English');
-    track.setAttribute('default', 'true');
-    audioControls.appendChild(track);
-
-
-    const captionDisplay = document.createElement('div');
-    captionDisplay.id = 'caption-display';
-    document.body.appendChild(captionDisplay);
-
 }
 
 
 
 function init(){
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.01, 1000);
     scene.add(camera);
     camera.name = 'global-camera';
     spaceWitchCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -767,8 +790,9 @@ function init(){
     renderer.outputEncoding = THREE.sRGBEncoding;
     document.body.appendChild(renderer.domElement);
 
-    audioControls();
-    captionCapture();
+    const captionDisplay = document.createElement('div');
+    captionDisplay.id = 'caption-display';
+    document.body.appendChild(captionDisplay);
 
     // create an AudioListener and add it to the camera
     const listener = new THREE.AudioListener();
@@ -798,7 +822,7 @@ function init(){
     
     //Light
     const light = new THREE.PointLight(0xFFFFFF, 1, 500);
-    light.position.set(10, 0, 25);
+    light.position.set(0, 0, 0);
     scene.add(light);
 
     camera.position.z = 600;
@@ -817,7 +841,7 @@ function init(){
             cockroach.speech[i].setBuffer(buffer);
             cockroach.speech[i].setRefDistance(20);   
         });
-    
+        audioControls('cockroach', i+1 );
     }
    
     starField();
@@ -828,7 +852,10 @@ function init(){
 
     loadCockroach();
    
-    makeInitialCameraCube()
+    makeInitialCameraCube();
+
+
+
 
     zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg');
     zombieMouse.hoverMaterial = new THREE.MeshStandardMaterial({map: zombieMouse.hoverTexture});
@@ -922,6 +949,11 @@ function init(){
         console.log('mouse click');	
     }
 
+    function onMouseDown ( event ){
+        mouse.down = true;
+        console.log('mouse is down');	
+    }
+
     function onTouchStart ( event ){
         mouse.click = true;
         mouse.hoverTouch = true;
@@ -935,13 +967,11 @@ function init(){
 
     }
 
-
     
     function onWheel ( event ){
         mouse.wheel = true;
         console.log('mouse wheel');	
     }
-
 
 
     window.addEventListener( 'mousemove', onMouseMove, false );
@@ -950,6 +980,8 @@ function init(){
     controls.domElement.addEventListener( 'click', onMouseClick, false );
     controls.domElement.addEventListener('wheel', onWheel, false);
     controls.domElement.addEventListener('touchstart', onTouchStart, false);
+    controls.domElement.addEventListener('pointerdown', onMouseDown, false);
+
 
 
     //resize canvas with window
@@ -1086,8 +1118,7 @@ const animate = function animate () {
 
 
         //silent audio and captions play
-        const audio = document.getElementById("audio-1");
-        audio.play();    
+   
     }
 
     if(intersects.length > 0 && intersects[0].object.name=='space-witch-bounding-box' && (mouse.hoverTouch === null || mouse.hoverTouch)){
@@ -1117,19 +1148,41 @@ const animate = function animate () {
         
         console.log('cockroach witch Intersection click', intersects[0].object.name)
 
-        
-
-
         // currentCamera = cockroachCamera;
         currentFocalPoint = cockroachFocalPoint;
         alpha = 0;
         currentTarget = cockroachCamera;
         // controls.enabled = false;
-        postLerpAction = function(){
-            cockroach.speech[0].play();
-            cockroach.clickAnimationOne.play();
-            cockroach.clickAnimationTwo.play();
-        };  
+        if (cockroach.stateCounter <=(cockroach.speech.length-1)&& !currentlyPlaying){
+            postLerpAction = function(){
+                currentlyPlaying = true;
+                cockroach.speech[cockroach.stateCounter].play();
+                cockroach.clickAnimationOne.stop();
+                cockroach.clickAnimationTwo.stop();
+                cockroach.clickAnimationOne.play();
+                cockroach.clickAnimationTwo.play();
+                startCaptions('cockroach', cockroach.stateCounter+1);
+                const audioObject = document.getElementById( `cockroach-${cockroach.stateCounter+1}`);
+                console.log(audioObject.duration);
+                console.log(cockroach.clickAnimationTwo.getClip().duration);
+                setTimeout(function (){
+                    cockroach.clickAnimationOne.stop();
+                    cockroach.clickAnimationTwo.stop();
+                    cockroach.clickAnimationOne.play();
+                    cockroach.clickAnimationTwo.play();
+                    console.log('timer')
+                }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)
+                cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
+                    currentlyPlaying = false;
+                    console.log('cockroach audio ended');
+                }
+                cockroach.stateCounter = cockroach.stateCounter + 1;
+
+
+            };  
+
+        }
+
         
 
     }
@@ -1140,6 +1193,11 @@ const animate = function animate () {
         currentFocalPoint = null;
     }
     else if (mouse.wheel&& intersects.length == 0){
+            
+        destination = initialDestination;
+        currentFocalPoint = null;
+    }
+    else if (mouse.down&& intersects.length == 0){
             
         destination = initialDestination;
         currentFocalPoint = null;
@@ -1191,6 +1249,7 @@ const animate = function animate () {
 
     mouse.click = false;
     mouse.wheel = false;
+    mouse.down = false;
 
 };
 
