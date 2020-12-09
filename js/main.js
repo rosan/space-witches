@@ -541,6 +541,8 @@ function loadCauldron (){
         gltf.scene.scale.set(2,2,2);
         gltf.scene.name = 'cauldron';
         scene.add(gltf.scene);
+        console.log(gltf.animations);
+        cauldron.animations = gltf.animations;
         console.log(cauldron.gltfScene);
         cauldron.mesh = cauldron.gltfScene.children.filter(function(m){return m.name=="video-soup"})[0];        
         cauldron.material = cauldron.mesh.material;
@@ -577,6 +579,37 @@ function loadCauldron (){
         cauldronLight5.position.set( -5, 4, 0);
         cauldron.gltfScene.add( cauldronLight5);
 
+        const windowOne = cauldron.gltfScene.children.filter(function(m){return m.name=="front-window"})[0];
+        windowOne.animation = cauldron.animations.filter(function(m){return m.name=="Sphere.003Action"})[0];
+        cauldron.mixer = new THREE.AnimationMixer(cauldron.gltfScene);
+        const windowOneAction = cauldron.mixer.clipAction(windowOne.animation, windowOne);
+
+        const windowTwo = cauldron.gltfScene.children.filter(function(m){return m.name=="back-window"})[0];
+        windowTwo.animation = cauldron.animations.filter(function(m){return m.name=="Sphere.004Action"})[0];
+        const windowTwoAction = cauldron.mixer.clipAction(windowTwo.animation, windowTwo);
+
+        const handle = cauldron.gltfScene.children.filter(function(m){return m.name=="handle"})[0];
+        handle.animation = cauldron.animations.filter(function(m){return m.name=="Torus.004Action"})[0];
+        const handleAction = cauldron.mixer.clipAction(handle.animation, handle);
+
+        const radar = cauldron.gltfScene.children.filter(function(m){return m.name=="Sphere016"})[0];
+        radar.animation = cauldron.animations.filter(function(m){return m.name=="Sphere.016Action"})[0];
+        const radarAction = cauldron.mixer.clipAction(radar.animation, radar);
+
+        const flameOne = cauldron.gltfScene.children.filter(function(m){return m.name=="flame-1001"})[0];
+        flameOne.animation = cauldron.animations.filter(function(m){return m.name=="Armature.001Action.005"})[0];
+        const flameOneAction = cauldron.mixer.clipAction(flameOne.animation, flameOne);
+
+        const flameTwo = cauldron.gltfScene.children.filter(function(m){return m.name=="flame-1-armature002"})[0].children[1];
+        flameTwo.animation = cauldron.animations.filter(function(m){return m.name=="Armature.001Action.005"})[0];
+        const flameTwoAction = cauldron.mixer.clipAction(flameTwo.animation, flameTwo);
+
+
+        const flameThree = cauldron.gltfScene.children.filter(function(m){return m.name=="flame-1-armature004"})[0].children[1];
+        flameThree.animation = cauldron.animations.filter(function(m){return m.name=="Armature.001Action.005"})[0];
+        const flameThreeAction = cauldron.mixer.clipAction(flameThree.animation, flameThree);
+
+
 
 
         // const geometry = new THREE.BoxGeometry(1,1,1);
@@ -584,9 +617,17 @@ function loadCauldron (){
         // box.position.set( 0, 4.5, 0);
 
         // cauldron.gltfScene.add(box);
-        // makeCauldronElement();
-        // cauldron.gltfScene.parent = centralCauldronCube;
+        makeCauldronElement();
+        cauldron.gltfScene.parent = centralCauldronCube;
 
+
+        windowOneAction.play();
+        windowTwoAction.play(); 
+        handleAction.play(); 
+        radarAction.play();
+        flameOneAction.play();
+        flameTwoAction.play();
+        flameThreeAction.play();
     
     }, undefined, function ( error ) {
 
@@ -1255,6 +1296,7 @@ const animate = function animate () {
     zombieMouse.mixer.update (delta);
     spaceWitch.mixer.update (delta);
     cockroach.mixer.update (delta);
+    cauldron.mixer.update (delta);
  
     // todo deltaSeconds
   
@@ -1270,7 +1312,7 @@ const animate = function animate () {
 
     
 
-    // centralCauldronCube.rotation.y += 0.04* delta;
+    centralCauldronCube.rotation.y += 0.04* delta;
 
     centralCube.rotation.z += 0.04* delta;
     centralCube.rotation.y += 0.03* delta;
