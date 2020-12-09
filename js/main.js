@@ -13,7 +13,11 @@ let cube1, cube2, cube3, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseF
 let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera;
 
 let currentlyPlaying;
+let allAudio = [];
+let volumeState = true;
 
+
+let listener;
 
 let cockroach = {
     gltfScene: null,
@@ -39,6 +43,19 @@ let cockroach = {
 }
 
 let zombieMouse = {
+    gltfScene: null,
+    boundingBox: null,
+    mesh: null,
+    animations: null,
+    materialMap: null,
+    hoverTexture: null,
+    hoverMaterial: null,
+    mixer: null,
+    sound: null,
+    speech: null,
+}
+
+let cauldron = {
     gltfScene: null,
     boundingBox: null,
     mesh: null,
@@ -103,6 +120,26 @@ const clock = new THREE.Clock();
 let delta = 0;
 
 
+function muteGlobalAudio(){
+    const button = document.getElementById('mute-button');
+
+    if (volumeState){
+        for (let i = 0; i < allAudio.length; i++){
+            console.log(allAudio[i]);
+            allAudio[i].audio.setVolume(0);
+        } 
+        button.textContent = "unmute";
+        volumeState=false;
+
+    }else{
+        for (let i = 0; i < allAudio.length; i++){
+            allAudio[i].audio.setVolume(allAudio[i].originalVolume);
+        }  
+        button.textContent = 'mute';
+        volumeState=true;
+    }
+}
+
 function makeVideo(){
     const video = document.createElement("video");
     video.id = 'video-1';
@@ -128,6 +165,9 @@ let text = document.createTextNode("Start");
 button.appendChild(text);
 
 button.addEventListener('click', runProgram, false);
+
+
+
 
 //changing orbital controls target
 let alpha=1;
@@ -445,6 +485,43 @@ function loadProjectionScreen (){
     } );
 
 }
+
+
+function loadCauldron (){
+    const loader = new GLTFLoader();
+    loader.load('models/cauldron-animated-10.gltf', function (gltf) {
+        cauldron.gltfScene = gltf.scene;
+
+        gltf.scene.name = 'projection-screen';
+        scene.add(gltf.scene);
+        cauldron.mesh = projectionScreen.gltfScene.children[7];
+        cauldron.material = projectionScreen.mesh.material;
+        cauldron.originalMaterial = projectionScreen.mesh.material;
+
+
+        const cauldronLight = new THREE.PointLight( 0x3461eb, 0.5, 100 );
+        cauldronLight.position.set( 0.5, 3.5, 0);
+
+        cauldron.gltfScene.add( projectionScreenLight );
+
+        // const geometry = new THREE.BoxGeometry(1,1,1);
+        // const box = new THREE.Mesh(geometry)
+        // box.position.set( 0.5, 3.5, 0);
+
+        // projectionScreen.gltfScene.add(box);
+
+        scene.add(projectionScreen.gltfScene);
+
+
+    
+    }, undefined, function ( error ) {
+
+        console.error( error );
+
+    } );
+
+}
+
 
 function loadCockroach(){
     // Loading in zombie mouse model
@@ -796,23 +873,40 @@ function init(){
     document.body.appendChild(captionDisplay);
 
     // create an AudioListener and add it to the camera
-    const listener = new THREE.AudioListener();
+    listener = new THREE.AudioListener();
+    
     camera.add( listener );
 
 
     // create a global audio source
     const sound = new THREE.Audio( listener );
-
     // load a sound and set it as the Audio object's buffer
     const audioLoader = new THREE.AudioLoader();
     //remember to credit audio!
-    audioLoader.load( 'audio/Enceladus-Hiss.mp3', function( buffer ) {
+    
+    audioLoader.load( 'Audio/Enceladus-Hiss.mp3', function( buffer ) {
+        console.log('background sound is playing');
         sound.setBuffer( buffer );
         sound.setLoop( true );
-        sound.setVolume( 0.03 );
+        const initialVolume = 0.03;
+        sound.setVolume( initialVolume );
         sound.play();
+        allAudio.push({
+            audio: sound,
+            originalVolume: initialVolume
+        })
     });
         
+
+    //make mute button
+    const muteButton = document.createElement("button");
+    document.body.appendChild(muteButton); 
+    muteButton.id = "mute-button";
+    let text2 = document.createTextNode("mute");
+    text.id = "button-text";
+    muteButton.appendChild(text2);
+    muteButton.addEventListener('click', muteGlobalAudio, false);
+
     
     // Controls
     controls = new OrbitControls(camera, renderer.domElement );
@@ -841,6 +935,11 @@ function init(){
         audioLoader.load( `Audio/cockroach/0${i+1}.mp3`, function (buffer) {
             cockroach.speech[i].setBuffer(buffer);
             cockroach.speech[i].setRefDistance(20);   
+            const initialVolume = 1;
+            allAudio.push({
+                audio: cockroach.speech[i],
+                originalVolume: initialVolume
+            });
         });
         audioControls('cockroach', i+1 );
     }
@@ -854,6 +953,8 @@ function init(){
     loadCockroach();
    
     makeInitialCameraCube();
+
+    loadCauldron ()
 
 
 
@@ -906,15 +1007,33 @@ function init(){
     videoSphere = new THREE.Mesh(videoSphereGeometry, videoMaterial);
 
     
+    cockroach.sound = new THREE.PositionalAudio( listener );
+    audioLoader.load( 'Audio/branches_1.wav', function (buffer) {
+        cockroach.sound.setBuffer(buffer);
+        cockroach.sound.setRefDistance(1);
+        cockroach.sound.setLoop( true )
+        const initialVolume = 0.3;
+        cockroach.sound.setVolume(initialVolume);
+        allAudio.push({
+            audio: cockroach.sound,
+            originalVolume: initialVolume});
 
+
+    });
 
     
     // Mousemodel ambient audio
     zombieMouse.sound = new THREE.PositionalAudio( listener );
     audioLoader.load( 'Audio/NASA_sun_sonification.wav', function (buffer) {
         zombieMouse.sound.setBuffer(buffer);
-        zombieMouse.sound.setRefDistance(10);
-        zombieMouse.sound.play();
+        zombieMouse.sound.setRefDistance(1);
+        const initialVolume = 0.3;
+        zombieMouse.sound.setVolume(0.3);
+        allAudio.push({
+            audio: zombieMouse.sound,
+            originalVolume: initialVolume
+        });
+
     });
 
     // Mousemodel on click audio dialogue
@@ -922,7 +1041,12 @@ function init(){
     audioLoader.load( 'Audio/Test-recording.m4a', function (buffer) {
         zombieMouse.speech.setBuffer(buffer);
         zombieMouse.speech.setRefDistance(10);
-        
+        const initialVolume = 1;
+        zombieMouse.sound.setVolume(1);
+        allAudio.push({
+            audio: zombieMouse.speech,
+            originalVolume: initialVolume});
+   
     });
 
 
@@ -1028,8 +1152,11 @@ const animate = function animate () {
         console.log(camera.position);
         currentTarget = initialCameraCube;
         currentFocalPoint=centralCube;
+        zombieMouse.sound.play();
+        cockroach.sound.play();
         alpha = 0;
         doOnce = null;
+
     }
 
 
@@ -1158,6 +1285,7 @@ const animate = function animate () {
             postLerpAction = function(){
                 currentlyPlaying = true;
                 cockroach.speech[cockroach.stateCounter].play();
+                cockroach.sound.stop();
                 cockroach.clickAnimationOne.stop();
                 cockroach.clickAnimationTwo.stop();
                 cockroach.clickAnimationOne.play();
@@ -1174,6 +1302,7 @@ const animate = function animate () {
                     console.log('timer')
                 }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)
                 cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
+                    cockroach.sound.play();
                     currentlyPlaying = false;
                     console.log('cockroach audio ended');
                 }

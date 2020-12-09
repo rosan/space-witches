@@ -17,16 +17,26 @@ div, .overlay {
 
 }
 
-button, .button {
+#button {
     margin-right: auto;
     margin-left: auto;
     margin-top: 30%;
     background-color: green;
     width:50%;
     text-align: center;
-    display: block;
-    
+    display: block;  
+}
 
+
+ #mute-button {
+
+    background-color:red;
+    position: absolute;
+    display: block;
+    z-index: 99;
+    left: 97%;
+    top: 3%;
+    /* cursor: pointer; */
 }
 
 #caption-display{
