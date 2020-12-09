@@ -8,9 +8,9 @@ let scene, renderer, videoCube, videoSphere, controls, starFieldMaterial3, desti
 
 let centralCube, centralMouseCube, centralRoachCube, centralCauldronCube;
 
-let cube1, cube2, cube3, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, initialDestination, quaternionDestination, initialCameraCube;
+let cube1, cube2, cube3, sphere1, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, cauldronFocalPoint, initialDestination, quaternionDestination, initialCameraCube;
 
-let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera;
+let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera, cauldronCamera;
 
 let currentlyPlaying;
 let allAudio = [];
@@ -57,7 +57,7 @@ let zombieMouse = {
 
 let cauldron = {
     gltfScene: null,
-    boundingBox: null,
+    boundingSphere: null,
     mesh: null,
     animations: null,
     materialMap: null,
@@ -368,6 +368,19 @@ function starField(){
 
 //Bounding boxes
 
+function cauldronBoundingSphere (){
+    const geometry = new THREE.SphereGeometry(9.5, 12, 12);
+    sphere1 = new THREE.Mesh(geometry);
+    sphere1.position.y = 3;
+    sphere1.position.x = -1.5;
+    sphere1.position.z = -2;
+    sphere1.visible=false;  
+
+    sphere1.name = 'cauldron-bounding-sphere';
+    scene.add(sphere1)
+}
+
+
 function cockroachBoundingBox (){
     const geometry = new THREE.BoxGeometry(3,7,3);
     cube3 = new THREE.Mesh(geometry);
@@ -379,6 +392,7 @@ function cockroachBoundingBox (){
     cube3.parent = cockroach.gltfScene;
     scene.add(cube3);
 }
+
 function makeZombiMouseBoundingBox (){
     const geometry = new THREE.BoxGeometry(6,17,7);
 
@@ -549,7 +563,22 @@ function loadCauldron (){
         cauldron.originalMaterial = cauldron.mesh.material;
 
         loadCauldronVideoTextures();
+        cauldronBoundingSphere();
 
+        let center = new THREE.Vector3(0,5,0);
+
+        const geometry = new THREE.BoxGeometry(2,2,2);
+        cauldronFocalPoint = new THREE.Mesh(geometry);
+        cauldronFocalPoint.position.x = center.x;
+        cauldronFocalPoint.position.y = center.y;
+        cauldronFocalPoint.position.z = center.z;
+        cauldronFocalPoint.visible = false;
+        cauldron.gltfScene.add(cauldronFocalPoint);
+
+        cauldron.gltfScene.add(cauldronCamera);
+        cauldronCamera.position.x = 0;
+        cauldronCamera.position.y = 10;
+        cauldronCamera.position.z = 0;
 
         const cauldronLight1 = new THREE.PointLight( 0x3461eb, 0.001, 100 );
         cauldronLight1.position.set( 0, 2, 2.5);
@@ -989,6 +1018,10 @@ function init(){
     cockroachCamera.name = 'cockroach-camera';
     zombieMouseCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
     zombieMouseCamera.name = 'zombie-mouse-camera';
+    cauldronCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    cauldronCamera.name = 'cauldron-camera';
+    
+
     currentCamera = camera;
 
     renderer = new THREE.WebGLRenderer({antialias: true});
@@ -1030,7 +1063,7 @@ function init(){
 
     //make mute button
     const muteButton = document.createElement("button");
-    document.body.appendChild(muteButton); 
+    overlay.appendChild(muteButton); 
     muteButton.id = "mute-button";
     let text2 = document.createTextNode("mute");
     text.id = "button-text";
@@ -1327,7 +1360,7 @@ const animate = function animate () {
 
 
 
-    let raycasterArray = [cube1, cube2, cube3, projectionScreen.gltfScene]
+    let raycasterArray = [cube1, cube2, cube3, sphere1, projectionScreen.gltfScene]
     // array of intersects objects for performance, so we don't have to calculate intersects on all scene.children
 
     // update the picking ray with the camera and mouse position
@@ -1456,6 +1489,15 @@ const animate = function animate () {
 
     }
 
+    if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'cauldron-bounding-sphere'){
+        console.log('cauldron click', intersects[0].object.name)
+
+        // currentCamera = cockroachCamera;
+        currentFocalPoint = cauldronFocalPoint;
+        currentTarget = cauldronCamera;
+        alpha = 0;
+    }
+
     if (mouse.click && intersects.length == 0){
             
         destination = initialDestination;
@@ -1505,6 +1547,12 @@ const animate = function animate () {
     let vector3 = zombieMouseFocalPoint.geometry.vertices[0].clone();
     vector3.applyMatrix4(zombieMouseFocalPoint.matrixWorld); 
     zombieMouseCamera.lookAt(vector3);
+
+    let vector4 = cauldronFocalPoint.geometry.vertices[0].clone();
+    vector4.applyMatrix4(cauldronFocalPoint.matrixWorld); 
+    cauldronCamera.lookAt(vector4);
+
+
  
     roachTextureAnimation.update(1000 * delta);
     roachAlphaAnimation.update(1000 * delta);

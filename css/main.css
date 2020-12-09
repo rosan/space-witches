@@ -28,14 +28,14 @@ div, .overlay {
 }
 
 
- #mute-button {
+ .overlay, #mute-button {
 
     background-color:red;
     position: absolute;
+    float: right;
     display: block;
     z-index: 99;
-    left: 90%;
-    /* top: 10%; */
+    top: 5%;
     /* cursor: pointer; */
 }
 
