@@ -6,7 +6,7 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/contro
 
 let scene, renderer, videoCube, videoSphere, controls, starFieldMaterial3, destination, testcube, cameraTestCube;
 
-let centralCube, centralMouseCube, centralRoachCube;
+let centralCube, centralMouseCube, centralRoachCube, centralCauldronCube;
 
 let cube1, cube2, cube3, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, initialDestination, quaternionDestination, initialCameraCube;
 
@@ -146,7 +146,20 @@ function makeVideo(){
     document.body.appendChild(video);
     const source = document.createElement('source');
     source.setAttribute('src','texture/mouse-on-white-30fps.mp4');
-    video.appendChild(source);    
+    video.appendChild(source);   
+    video.addEventListener('loadeddata', function(){
+        console.log('video has loaded');
+    });
+    video.load();
+    
+    
+    const cauldronDefaultVideo = document.createElement("video");
+    cauldronDefaultVideo.id = 'cauldron-default-video';
+    document.body.appendChild(cauldronDefaultVideo);
+    const cauldronDefaultVideoSource = document.createElement('source');
+    cauldronDefaultVideoSource.setAttribute('src','texture/mouse-on-white-30fps.mp4');
+    cauldronDefaultVideo.appendChild(cauldronDefaultVideoSource);     
+    cauldronDefaultVideo.load();
 }
 
 
@@ -429,6 +442,14 @@ function makeCentralMouseElement(){
     scene.add(centralMouseCube);
 }
 
+function makeCauldronElement(){
+    const geometry = new THREE.BoxGeometry(1,1,1);
+    centralCauldronCube = new THREE.Mesh(geometry);
+    centralCauldronCube.name = 'central cauldron cube';
+    centralCauldronCube.visible = false;
+    scene.add(centralCauldronCube);
+}
+
 function makeCentralRoachElement(){
     const geometry = new THREE.BoxGeometry(1,1,1);
     centralRoachCube = new THREE.Mesh(geometry);
@@ -449,6 +470,32 @@ function makeInitialCameraCube(){
     scene.add(initialCameraCube);
 
 }
+
+function loadCauldronVideoTextures(){
+
+    cauldron.video = document.getElementById('cauldron-default-video');
+    cauldron.videoTexture = new THREE.VideoTexture( cauldron.video );
+    cauldron.videoTexture.flipY = false;
+    // projectionScreen.videoTexture.rotation = Math.Pi/2;
+    cauldron.videoTexture.format = THREE.RGBFormat;
+    cauldron.videoMaterial = new THREE.MeshBasicMaterial({map: cauldron.videoTexture});
+    cauldron.videoMaterial.name = 'cauldronVideoMaterial';
+
+    console.log(cauldron.mesh.material);
+    console.log(cauldron.videoMaterial);
+    cauldron.video.loop = true;
+    cauldron.video.play();
+    cauldron.mesh.material = cauldron.videoMaterial;
+    console.log(cauldron.mesh.material);
+
+    cauldron.video.addEventListener('ended', function(){
+        console.log('cauldron video is done');
+        // cauldron.mesh.material = cauldron.originalMaterial;
+    });
+
+
+
+}   
 
 function loadProjectionScreen (){
     const loader = new GLTFLoader();
@@ -489,29 +536,56 @@ function loadProjectionScreen (){
 
 function loadCauldron (){
     const loader = new GLTFLoader();
-    loader.load('models/cauldron-animated-10.gltf', function (gltf) {
+    loader.load('models/cauldron-animated-12.gltf', function (gltf) {
         cauldron.gltfScene = gltf.scene;
-
-        gltf.scene.name = 'projection-screen';
+        gltf.scene.scale.set(2,2,2);
+        gltf.scene.name = 'cauldron';
         scene.add(gltf.scene);
-        cauldron.mesh = projectionScreen.gltfScene.children[7];
-        cauldron.material = projectionScreen.mesh.material;
-        cauldron.originalMaterial = projectionScreen.mesh.material;
+        console.log(cauldron.gltfScene);
+        cauldron.mesh = cauldron.gltfScene.children.filter(function(m){return m.name=="video-soup"})[0];        
+        cauldron.material = cauldron.mesh.material;
+        cauldron.originalMaterial = cauldron.mesh.material;
+
+        loadCauldronVideoTextures();
 
 
-        const cauldronLight = new THREE.PointLight( 0x3461eb, 0.5, 100 );
-        cauldronLight.position.set( 0.5, 3.5, 0);
+        const cauldronLight1 = new THREE.PointLight( 0x3461eb, 0.001, 100 );
+        cauldronLight1.position.set( 0, 2, 2.5);
+        cauldron.gltfScene.add( cauldronLight1 );
 
-        cauldron.gltfScene.add( projectionScreenLight );
+        const cauldronLight2 = new THREE.PointLight( 0x3461eb, 0.001, 100 );
+        cauldronLight2.position.set( -1, 3, -4);
+        cauldron.gltfScene.add( cauldronLight2 );
+
+        const cauldronLight3 = new THREE.PointLight( 0xffbb00, 0.5  , 100 );
+        cauldronLight3.position.set( 1, 5, 0);
+        cauldron.gltfScene.add( cauldronLight3);
+
+        // const cauldronLight31 = new THREE.PointLight( 0xf7c640d, 2, 100 );
+        // cauldronLight31.position.set( -1, 6, 0);
+        // cauldron.gltfScene.add( cauldronLight31);
+
+        const cauldronLight32 = new THREE.PointLight( 0x5500ff , 0.3, 100 );
+        cauldronLight32.position.set( 0, 5, 1);
+        cauldron.gltfScene.add( cauldronLight32);
+
+        const cauldronLight4 = new THREE.PointLight( 0xfcc603, 0.001, 100 );
+        cauldronLight4.position.set( 5, 4, 0);
+        cauldron.gltfScene.add( cauldronLight4);
+
+        const cauldronLight5 = new THREE.PointLight( 0xfcc603, 0.010, 100 );
+        cauldronLight5.position.set( -5, 4, 0);
+        cauldron.gltfScene.add( cauldronLight5);
+
+
 
         // const geometry = new THREE.BoxGeometry(1,1,1);
         // const box = new THREE.Mesh(geometry)
-        // box.position.set( 0.5, 3.5, 0);
+        // box.position.set( 0, 4.5, 0);
 
-        // projectionScreen.gltfScene.add(box);
-
-        scene.add(projectionScreen.gltfScene);
-
+        // cauldron.gltfScene.add(box);
+        // makeCauldronElement();
+        // cauldron.gltfScene.parent = centralCauldronCube;
 
     
     }, undefined, function ( error ) {
@@ -529,9 +603,16 @@ function loadCockroach(){
 
     loader.load('models/cockroach-combined-anim-1.gltf', function (gltf) {
         cockroach.gltfScene = gltf.scene;
-        cockroach.gltfScene.position.x = 15;
-        cockroach.gltfScene.position.y = 15;
+        // cockroach.gltfScene.position.x = 15;
+        cockroach.gltfScene.position.y = 6;
         cockroach.gltfScene.position.z = 15;
+        cockroach.gltfScene.rotation.y = 160;
+        // cockroach.gltfScene.rotation.x = -20;
+        // cockroach.gltfScene.rotation.z = 20;
+        gltf.scene.scale.set(1.5, 1.5, 1.5);
+
+
+
         cockroach.gltfScene.name = 'Cockroach Scene';
 
         cockroach.animations = gltf.animations;
@@ -653,9 +734,11 @@ function loadSpaceWitch(){
      const loader = new GLTFLoader();
      loader.load('models/space-witch-rehat-top-update.gltf', function (gltf) {
         spaceWitch.gltfScene = gltf.scene;
-        spaceWitch.gltfScene.position.x = 10;
-        spaceWitch.gltfScene.position.y = 10;
-        spaceWitch.gltfScene.position.z = 10;
+        spaceWitch.gltfScene.position.x = 20;
+        spaceWitch.gltfScene.position.y = 1;
+        // spaceWitch.gltfScene.position.z = 10;
+        gltf.scene.scale.set(2, 2, 2);
+
         spaceWitch.gltfScene.name = 'Space Witch Scene';
  
         spaceWitch.animations = gltf.animations;
@@ -734,9 +817,11 @@ function loadZombieMouse(){
     const loader = new GLTFLoader();
     loader.load('models/full-mouse-2-animation.gltf', function (gltf) {
         zombieMouse.gltfScene = gltf.scene;
-        zombieMouse.gltfScene.position.x = -20;
-        zombieMouse.gltfScene.position.y = -5;
-        zombieMouse.gltfScene.position.z = -3;
+        zombieMouse.gltfScene.position.x = -25;
+        zombieMouse.gltfScene.position.y = 1;
+        gltf.scene.scale.set(1.1,1.1,1.1);
+
+        // zombieMouse.gltfScene.position.z = -3;
 
         zombieMouse.animations = gltf.animations;
 
@@ -819,10 +904,14 @@ function audioControls (directory, audioNumber){
     audioControls.muted = true;
 
     const source = document.createElement('source');
-    source.setAttribute('src', `Audio/${directory}/0${audioNumber}.mp3`)//Make same length but silent and put here
-    source.setAttribute('src', `Audio/${directory}/0${audioNumber}.ogg`)//Make same length but silent and put here
-    source.setAttribute('type', 'audio/mpeg')
+    source.setAttribute('src', `Audio/${directory}/0${audioNumber}.mp3`)
+    source.setAttribute('type', 'audio/mpeg');
     audioControls.appendChild(source);
+
+    const source2 = document.createElement('source');
+    source2.setAttribute('src', `Audio/${directory}/0${audioNumber}.ogg`)
+    source2.setAttribute('type', 'audio/ogg');
+    audioControls.appendChild(source2);
 
     const track = document.createElement("track");
     track.setAttribute('kind', 'captions');
@@ -916,7 +1005,7 @@ function init(){
     destination =  initialDestination;   
     
     //Light
-    const light = new THREE.PointLight(0xFFFFFF, 1, 500);
+    const light = new THREE.PointLight(0xFFFFFF, 0.2, 500);
     light.position.set(0, 0, 0);
     scene.add(light);
 
@@ -954,7 +1043,7 @@ function init(){
    
     makeInitialCameraCube();
 
-    loadCauldron ()
+    loadCauldron ();
 
 
 
@@ -984,6 +1073,7 @@ function init(){
         });
 
     }
+
 
     loadVideoTexture()
 
@@ -1168,22 +1258,31 @@ const animate = function animate () {
  
     // todo deltaSeconds
   
-    zombieMouse.gltfScene.rotation.x += 0.2 * delta;
-    zombieMouse.gltfScene.rotation.y += 0.1 * delta;
+    // zombieMouse.gltfScene.rotation.x += 0.2 * delta;
+    // zombieMouse.gltfScene.rotation.y += 0.1 * delta;
     
 
-    spaceWitch.gltfScene.rotation.x +=-0.1 * delta;
-    spaceWitch.gltfScene.rotation.y +=-0.04 * delta;
+    // spaceWitch.gltfScene.rotation.x +=-0.1 * delta;
+    // spaceWitch.gltfScene.rotation.y +=-0.04 * delta;
 
-    cockroach.gltfScene.rotation.z += -0.01 * delta;
-    cockroach.gltfScene.rotation.x += -0.04 * delta;
+    // cockroach.gltfScene.rotation.z += -0.01 * delta;
+    // cockroach.gltfScene.rotation.x += -0.04 * delta;
+
+    
+
+    // centralCauldronCube.rotation.y += 0.04* delta;
+
+    centralCube.rotation.z += 0.04* delta;
+    centralCube.rotation.y += 0.03* delta;
 
 
-    centralCube.rotation.z += 0.1* delta;
+    centralMouseCube.rotation.y += -0.03* delta;
+    centralRoachCube.rotation.x += 0.01* delta;
 
-    centralMouseCube.rotation.y += -0.05* delta;
 
-    centralRoachCube.rotation.x += -0.03* delta;
+    centralRoachCube.rotation.x += 0.02* delta;
+    centralRoachCube.rotation.y += 0.05* delta;
+
 
 
     let raycasterArray = [cube1, cube2, cube3, projectionScreen.gltfScene]
@@ -1311,9 +1410,7 @@ const animate = function animate () {
 
             };  
 
-        }
-
-        
+        }  
 
     }
 

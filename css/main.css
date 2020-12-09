@@ -34,8 +34,8 @@ div, .overlay {
     position: absolute;
     display: block;
     z-index: 99;
-    left: 97%;
-    top: 3%;
+    left: 90%;
+    /* top: 10%; */
     /* cursor: pointer; */
 }
 
@@ -53,4 +53,8 @@ div, .overlay {
 
 #video-1{
     display: none;
+}
+
+#cauldron-default-video{
+    display: none; 
 }
