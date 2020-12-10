@@ -674,8 +674,8 @@ function loadCockroach(){
     loader.load('models/cockroach-combined-anim-1.gltf', function (gltf) {
         cockroach.gltfScene = gltf.scene;
         // cockroach.gltfScene.position.x = 15;
-        cockroach.gltfScene.position.y = 6;
-        cockroach.gltfScene.position.z = 15;
+        cockroach.gltfScene.position.y = 15;
+        cockroach.gltfScene.position.z = 20;
         cockroach.gltfScene.rotation.y = 160;
         // cockroach.gltfScene.rotation.x = -20;
         // cockroach.gltfScene.rotation.z = 20;
@@ -713,8 +713,8 @@ function loadCockroach(){
 
         cockroach.gltfScene.add(cockroachCamera);
         cockroachCamera.position.x = 0;
-        cockroachCamera.position.y = 5;
-        cockroachCamera.position.z = 10;
+        cockroachCamera.position.y = 4;
+        cockroachCamera.position.z = 9;
 
         let center = new THREE.Vector3(2,2,0);
 
@@ -818,7 +818,7 @@ function loadSpaceWitch(){
         makeSpaceWitchBoundingBox();
         spaceWitch.gltfScene.add(cube2);
         spaceWitch.gltfScene.add(spaceWitchCamera);
-        spaceWitchCamera.position.x = -15;
+        spaceWitchCamera.position.x = -8;
         spaceWitchCamera.position.y = 5;
         spaceWitchCamera.position.z = 0;
 
@@ -907,7 +907,7 @@ function loadZombieMouse(){
         zombieMouse.gltfScene.add(cube1);
 
         zombieMouse.gltfScene.add(zombieMouseCamera);
-        zombieMouseCamera.position.x = 18;
+        zombieMouseCamera.position.x = 12;
         zombieMouseCamera.position.y = 5;
         zombieMouseCamera.position.z = 5;
 
@@ -1083,7 +1083,7 @@ function init(){
     light.position.set(0, 0, 0);
     scene.add(light);
 
-    camera.position.z = 600;
+    camera.position.z = 500;
 
 
     // put this in later w timing for narrative
@@ -1305,6 +1305,8 @@ let currentCamera;
 let currentFocalPoint;
 let focalPointDestination;
 let doOnce = 1;
+let up = true;
+
 
 
 
@@ -1333,16 +1335,38 @@ const animate = function animate () {
  
     // todo deltaSeconds
   
-    // zombieMouse.gltfScene.rotation.x += 0.2 * delta;
-    // zombieMouse.gltfScene.rotation.y += 0.1 * delta;
+
     
+    if (currentFocalPoint==spaceWitchFocalPoint){
+        spaceWitch.gltfScene.rotation.x +=-0.1 * delta;
+        spaceWitch.gltfScene.rotation.y +=-0.04 * delta;
+    }
+    
+    if (currentFocalPoint==cockroachFocalPoint){
+        cockroach.gltfScene.rotation.z += -0.01 * delta;
+        cockroach.gltfScene.rotation.x += -0.1 * delta;
+    }
 
-    // spaceWitch.gltfScene.rotation.x +=-0.1 * delta;
-    // spaceWitch.gltfScene.rotation.y +=-0.04 * delta;
+    if (currentFocalPoint==zombieMouseFocalPoint){
+        zombieMouse.gltfScene.rotation.x += 0.2 * delta;
+        zombieMouse.gltfScene.rotation.y += 0.1 * delta;
+    }
 
-    // cockroach.gltfScene.rotation.z += -0.01 * delta;
-    // cockroach.gltfScene.rotation.x += -0.04 * delta;
 
+
+    if (currentFocalPoint!=cauldronFocalPoint){
+        if(up){
+            cauldron.gltfScene.position.y+= Math.random()*0.05-0.3 * delta;
+            if(cauldron.gltfScene.position.y>=2){
+                up=false;
+            }
+        }else {
+            cauldron.gltfScene.position.y+= Math.random()*-0.01-0.03 * delta;
+            if(cauldron.gltfScene.position.y<=0){
+                up=true;
+            }
+        }
+    }
     
 
     centralCauldronCube.rotation.y += 0.04* delta;
