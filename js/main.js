@@ -1270,6 +1270,8 @@ function init(){
     controls.domElement.addEventListener('wheel', onWheel, false);
     controls.domElement.addEventListener('touchstart', onTouchStart, false);
     controls.domElement.addEventListener('pointerdown', onMouseDown, false);
+    // controls.domElement.addEventListener('pointerdown', onMouseDown, false);
+
 
 
 
@@ -1527,7 +1529,7 @@ const animate = function animate () {
         destination = initialDestination;
         currentFocalPoint = null;
     }
-    else if (mouse.wheel&& intersects.length == 0){
+    else if (mouse.wheel){
             
         destination = initialDestination;
         currentFocalPoint = null;
