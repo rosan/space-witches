@@ -1039,6 +1039,28 @@ function initializeZombieMouseSequences(){
     zombieMouse.sequence[2] = zombieMouseSequenceOne;
     zombieMouse.sequence[1] = zombieMouseSequenceTwo;
     zombieMouse.sequence[0] = zombieMouseSequenceThree; 
+}
+
+
+function spaceWitchSequenceOne(){
+    currentlyPlaying = true;
+    // spaceWitch.sound.stop();
+
+    spaceWitch.speech[0].play();
+    startCaptions('space-witch', 1);
+    
+    spaceWitch.speech[0].source.onended = (event) => {
+        // spaceWitch.sound.play();
+        currentlyPlaying = false;
+        console.log('space witch audio ended');
+    }
+    console.log(`space witch state counter is ${spaceWitch.stateCounter}`);
+    spaceWitch.stateCounter = spaceWitch.stateCounter + 1;
+
+}
+
+function initializespaceWitchSequences(){
+    spaceWitch.sequence[0] = spaceWitchSequenceOne;
 
 }
 
@@ -1240,6 +1262,8 @@ function init(){
     loadCauldron();
 
     initializeZombieMouseSequences();
+
+    initializespaceWitchSequences();
 
 
 
@@ -1587,6 +1611,13 @@ const animate = function animate () {
 
         currentTarget = spaceWitchCamera;
         alpha = 0;
+
+        if (spaceWitch.stateCounter <(spaceWitch.sequence.length)){
+            postLerpAction = function(){
+                spaceWitch.sequence[spaceWitch.stateCounter]();
+            };  
+
+        }  
     }
 
 
