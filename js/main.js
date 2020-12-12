@@ -974,18 +974,18 @@ function audioControls (directory, audioNumber){
     audioControls.muted = true;
 
     const source = document.createElement('source');
-    source.setAttribute('src', `Audio/${directory}/0${audioNumber}.mp3`)
+    source.setAttribute('src', `Audio/${directory}/${audioNumber}.mp3`)
     source.setAttribute('type', 'audio/mpeg');
     audioControls.appendChild(source);
 
     const source2 = document.createElement('source');
-    source2.setAttribute('src', `Audio/${directory}/0${audioNumber}.ogg`)
+    source2.setAttribute('src', `Audio/${directory}/${audioNumber}.ogg`)
     source2.setAttribute('type', 'audio/ogg');
     audioControls.appendChild(source2);
 
     const track = document.createElement("track");
     track.setAttribute('kind', 'captions');
-    track.setAttribute('src', `captions/${directory}/0${audioNumber}.vtt`);
+    track.setAttribute('src', `captions/${directory}/${audioNumber}.vtt`);
     track.setAttribute('label', 'English');
     track.setAttribute('default', 'true');
     audioControls.appendChild(track);
@@ -1095,7 +1095,7 @@ function init(){
     // cockroach on click audio dialogue
     for (let i = 0; i<7; i++){
         cockroach.speech[i] = new THREE.PositionalAudio( listener );
-        audioLoader.load( `Audio/cockroach/0${i+1}.mp3`, function (buffer) {
+        audioLoader.load( `Audio/cockroach/${i+1}.mp3`, function (buffer) {
             cockroach.speech[i].setBuffer(buffer);
             cockroach.speech[i].setRefDistance(20);   
             const initialVolume = 1;
@@ -1529,7 +1529,7 @@ const animate = function animate () {
         destination = initialDestination;
         currentFocalPoint = null;
     }
-    else if (mouse.wheel){
+    else if (mouse.wheela){
             
         destination = initialDestination;
         currentFocalPoint = null;
