@@ -859,7 +859,7 @@ function loadCockroach(){
 function loadSpaceWitch(){
      // Loading in zombie mouse model
      const loader = new GLTFLoader();
-     loader.load('models/space-witch-rehat-top-update.gltf', function (gltf) {
+     loader.load('models/space-witch-revamped-witchy-4.gltf', function (gltf) {
         spaceWitch.gltfScene = gltf.scene;
         spaceWitch.gltfScene.position.x = 30;
         spaceWitch.gltfScene.position.y = 1;
