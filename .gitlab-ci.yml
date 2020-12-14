@@ -1,6 +1,7 @@
 stages:
   - build
-  - deploy
+  - deploy stage
+  - deploy prod
 
 image: docker
 services:
@@ -20,8 +21,23 @@ build site:
     paths:
       - site.tar.gz
 
-deploy:
-  stage: deploy
+deploy stage:
+  stage: deploy stage
+  script:
+    - eval $(ssh-agent -a "$PWD"/ssh-agent-sock)
+    - echo "$SSH_PRIVATE_KEY" | ssh-add -
+    - >
+        docker run
+        --volume $SSH_AUTH_SOCK:/ssh-agent --env SSH_AUTH_SOCK=/ssh-agent
+        --volume $PWD/site.tar.gz:/site.tar.gz
+        $ANSIBLE_IMAGE
+        ansible-playbook -i inventory stage-space-witches.yml
+        --extra-vars "site_tarball=/site.tar.gz version_tag=$CI_COMMIT_SHA"
+  after_script:
+    - rm ssh-agent-sock
+
+deploy prod:
+  stage: deploy prod
   script:
     - eval $(ssh-agent -a "$PWD"/ssh-agent-sock)
     - echo "$SSH_PRIVATE_KEY" | ssh-add -
