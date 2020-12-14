@@ -172,11 +172,19 @@ function makeVideos(){
 
     const spaceWitchSummonsVideo = document.createElement("video");
     spaceWitchSummonsVideo.id = 'space-witch-summons-video';
-    spaceWitchSummonsVideo.className = 'invisible-video';
-    document.body.appendChild(spaceWitchSummonsVideo);
     const spaceWitchSummonsVideoSource = document.createElement('source');
     spaceWitchSummonsVideoSource.setAttribute('src','texture/summons.mp4');
-    spaceWitchSummonsVideo.appendChild(spaceWitchSummonsVideoSource);     
+    spaceWitchSummonsVideo.appendChild(spaceWitchSummonsVideoSource);   
+    
+    const div =  document.createElement('div');
+    div.id = 'space-witch-summons-video-div';
+    div.className = 'invisible-video';
+    div.appendChild(spaceWitchSummonsVideo);
+   
+
+    document.body.appendChild(div);
+
+    
     spaceWitchSummonsVideo.load();
 
     const cockroachVidOne = document.createElement("video");
@@ -1100,10 +1108,15 @@ function spaceWitchSequenceOne(){
     spaceWitch.speech[0].source.onended = (event) => {
         console.log('space witch audio ended');
         const video = document.getElementById('space-witch-summons-video');
-        video.classList.remove('invisible-video');
+        const div = document.getElementById('space-witch-summons-video-div');
+        div.classList.add('dream-video-div');
+        div.classList.remove('invisible-video');
+        
         video.play();
         video.onended = (event) => {
-            video.classList.add('invisible-video');
+            div.classList.add('invisible-video');
+            div.classList.remove('dream-video-div');
+
             console.log('video ended');
             spaceWitch.speech[1].play();
             startCaptions('space-witch', 2);
