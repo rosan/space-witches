@@ -41,7 +41,7 @@ div, .overlay {
 
 #caption-display{
     /* background-color: white; */
-    color: red;
+    color: rgb(255, 0, 0);
     width: 20%;
     height: 10%;
     margin-left: 40%;
@@ -51,10 +51,12 @@ div, .overlay {
     display: block;
 }
 
-#video-1{
-    display: none;
+#caption-display span {
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 5px;
+
 }
 
-#cauldron-default-video{
-    display: none; 
+.invisible-video{
+    display: none;
 }

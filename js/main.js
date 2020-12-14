@@ -8,9 +8,9 @@ let scene, renderer, videoCube, videoSphere, controls, starFieldMaterial3, desti
 
 let centralCube, centralMouseCube, centralRoachCube, centralCauldronCube;
 
-let cube1, cube2, cube3, sphere1, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, cauldronFocalPoint, initialDestination, quaternionDestination, initialCameraCube;
+let cube1, cube2, cube3, sphere1, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, cauldronFocalPoint, initialDestination, quaternionDestination, initialCameraCube, porjectionScreenFocalPoint;
 
-let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera, cauldronCamera;
+let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera, cauldronCamera, projectionScreenCamera;
 
 let currentlyPlaying;
 let allAudio = [];
@@ -39,6 +39,7 @@ let cockroach = {
     clickAnimationOne: null,
     clickAnimationTwo: null,
     stateCounter: 0,
+    sequence: [],
 
 }
 
@@ -145,9 +146,10 @@ function muteGlobalAudio(){
     }
 }
 
-function makeVideo(){
+function makeVideos(){
     const video = document.createElement("video");
     video.id = 'video-1';
+    video.className = 'invisible-video';
     document.body.appendChild(video);
     const source = document.createElement('source');
     source.setAttribute('src','texture/mouse-on-white-30fps.mp4');
@@ -160,15 +162,37 @@ function makeVideo(){
     
     const cauldronDefaultVideo = document.createElement("video");
     cauldronDefaultVideo.id = 'cauldron-default-video';
+    cauldronDefaultVideo.className = 'invisible-video';
     document.body.appendChild(cauldronDefaultVideo);
     const cauldronDefaultVideoSource = document.createElement('source');
     cauldronDefaultVideoSource.setAttribute('src','texture/mouse-on-white-30fps.mp4');
     cauldronDefaultVideo.appendChild(cauldronDefaultVideoSource);     
     cauldronDefaultVideo.load();
+
+
+    const spaceWitchSummonsVideo = document.createElement("video");
+    spaceWitchSummonsVideo.id = 'space-witch-summons-video';
+    spaceWitchSummonsVideo.className = 'invisible-video';
+    document.body.appendChild(spaceWitchSummonsVideo);
+    const spaceWitchSummonsVideoSource = document.createElement('source');
+    spaceWitchSummonsVideoSource.setAttribute('src','texture/summons.mp4');
+    spaceWitchSummonsVideo.appendChild(spaceWitchSummonsVideoSource);     
+    spaceWitchSummonsVideo.load();
+
+    const cockroachVidOne = document.createElement("video");
+    cockroachVidOne.id = 'cockroach-vid-1';
+    cockroachVidOne.className = 'invisible-video';
+    document.body.appendChild(cockroachVidOne);
+    const cockroachVidOneSource = document.createElement('source');
+    cockroachVidOneSource.setAttribute('src','texture/cockroach/1.mp4');
+    cockroachVidOne.appendChild(cockroachVidOneSource);     
+    cockroachVidOne.load();
+
+    
 }
 
 
-makeVideo();
+makeVideos();
 
 //make overlay div
 const overlay = document.createElement("div");
@@ -295,7 +319,7 @@ function roachBabies(){
     material.side =  THREE.BackSide;
 
     const roachBabies = new THREE.Points(roachGeometry, material);
-    cockroach.gltfScene.add(roachBabies);   
+    // cockroach.gltfScene.add(roachBabies);   
     roachBabies.position.x = 1; 
     roachBabies.position.y = 4;
     roachBabies.position.z = -5; 
@@ -518,12 +542,16 @@ function loadCauldronVideoTextures(){
 
 function loadProjectionScreen (){
     const loader = new GLTFLoader();
-    loader.load('models/projection-screen-v7.gltf', function (gltf) {
+    loader.load('models/projection-screen-v9.gltf', function (gltf) {
         projectionScreen.gltfScene = gltf.scene;
 
         gltf.scene.name = 'projection-screen';
         scene.add(gltf.scene);
-        projectionScreen.mesh = projectionScreen.gltfScene.children[7];
+        console.log(`projection screen is `)
+        console.log(projectionScreen.gltfScene)
+
+        projectionScreen.mesh = projectionScreen.gltfScene.children.filter(function(m){return m.name=="screen"})[0];    
+
         projectionScreen.material = projectionScreen.mesh.material;
         projectionScreen.originalMaterial = projectionScreen.mesh.material;
         projectionScreen.gltfScene.position.x = 5;
@@ -534,13 +562,29 @@ function loadProjectionScreen (){
 
         projectionScreen.gltfScene.add( projectionScreenLight );
 
-        // const geometry = new THREE.BoxGeometry(1,1,1);
-        // const box = new THREE.Mesh(geometry)
-        // box.position.set( 0.5, 3.5, 0);
+        const geometry = new THREE.BoxGeometry(1,1,1);
+        porjectionScreenFocalPoint = new THREE.Mesh(geometry)
+        porjectionScreenFocalPoint.position.set( 4, 3, 0);
+        porjectionScreenFocalPoint.visible = false;
+        cockroach.gltfScene.add(porjectionScreenFocalPoint);
 
+        cockroach.gltfScene.add(projectionScreenCamera);
+
+
+        // projectionScreenCamera.parent = porjectionScreenFocalPoint;
+        projectionScreenCamera.position.set( 3, 3, 5);
+        
+
+
+        // const box = new THREE.Mesh(geometry)
+        // box.position.set( 3, 3, 0);
         // projectionScreen.gltfScene.add(box);
 
+        
+
+
         cockroach.gltfScene.add(projectionScreen.gltfScene);
+
 
 
     
@@ -817,7 +861,7 @@ function loadSpaceWitch(){
      const loader = new GLTFLoader();
      loader.load('models/space-witch-rehat-top-update.gltf', function (gltf) {
         spaceWitch.gltfScene = gltf.scene;
-        spaceWitch.gltfScene.position.x = 25;
+        spaceWitch.gltfScene.position.x = 30;
         spaceWitch.gltfScene.position.y = 1;
         // spaceWitch.gltfScene.position.z = 10;
         gltf.scene.scale.set(2, 2, 2);
@@ -970,7 +1014,11 @@ function zombieMouseSequenceOne(){
     currentlyPlaying = true;
     zombieMouse.sound.stop();
 
-    scene.add(videoSphere);   
+    zombieMouse.gltfScene.add(videoSphere);  
+    videoSphere.rotation.y = 1*Math.PI; 
+    // videoSphere.rotation.z = 0.2*Math.PI; 
+
+
     const video = document.getElementById('video-1');
     video.play();
 
@@ -979,7 +1027,7 @@ function zombieMouseSequenceOne(){
     startCaptions('zombie-mouse',1);
     
     zombieMouse.speech[0].source.onended = (event) => {
-        scene.remove(videoSphere);
+        zombieMouse.gltfScene.remove(videoSphere);
         zombieMouse.sound.play();
         currentlyPlaying = false;
         console.log('zombieMouse audio ended');
@@ -1017,9 +1065,9 @@ function zombieMouseSequenceThree(){
         currentFocalPoint = spaceWitchFocalPoint;
         currentTarget = spaceWitchCamera;        
         console.log('zombieMouse audio ended');
-        spaceWitch.speech[13].play();
-        startCaptions('space-witch', 14);
-        spaceWitch.speech[13].source.onended = (event) => {
+        spaceWitch.speech[12].play();
+        startCaptions('space-witch', 13);
+        spaceWitch.speech[12].source.onended = (event) => {
             console.log('space witch audio ended');
             currentlyPlaying = false;
             currentFocalPoint = zombieMouseFocalPoint;
@@ -1036,9 +1084,9 @@ function zombieMouseSequenceThree(){
 
 
 function initializeZombieMouseSequences(){
-    zombieMouse.sequence[2] = zombieMouseSequenceOne;
+    zombieMouse.sequence[0] = zombieMouseSequenceOne;
     zombieMouse.sequence[1] = zombieMouseSequenceTwo;
-    zombieMouse.sequence[0] = zombieMouseSequenceThree; 
+    zombieMouse.sequence[2] = zombieMouseSequenceThree; 
 }
 
 
@@ -1050,9 +1098,24 @@ function spaceWitchSequenceOne(){
     startCaptions('space-witch', 1);
     
     spaceWitch.speech[0].source.onended = (event) => {
-        // spaceWitch.sound.play();
-        currentlyPlaying = false;
         console.log('space witch audio ended');
+        const video = document.getElementById('space-witch-summons-video');
+        video.classList.remove('invisible-video');
+        video.play();
+        video.onended = (event) => {
+            video.classList.add('invisible-video');
+            console.log('video ended');
+            spaceWitch.speech[1].play();
+            startCaptions('space-witch', 2);
+
+            spaceWitch.speech[1].source.onended= (event) => {
+                console.log('space witch audio ended');
+                // spaceWitch.sound.play();
+                currentlyPlaying = false;
+            }
+
+        }
+
     }
     console.log(`space witch state counter is ${spaceWitch.stateCounter}`);
     spaceWitch.stateCounter = spaceWitch.stateCounter + 1;
@@ -1061,6 +1124,72 @@ function spaceWitchSequenceOne(){
 
 function initializespaceWitchSequences(){
     spaceWitch.sequence[0] = spaceWitchSequenceOne;
+
+}
+
+function cockroachSequenceOne(){
+    currentlyPlaying = true;
+    cockroach.speech[cockroach.stateCounter].play();
+  
+    console.log(projectionScreen.mesh.material);
+    console.log(projectionScreen.videoMaterial);
+    projectionScreen.video.play();
+    projectionScreen.mesh.material = projectionScreen.videoMaterial;
+    console.log(projectionScreen.mesh.material);
+
+    cockroach.sound.stop();
+    cockroach.clickAnimationOne.stop();
+    cockroach.clickAnimationTwo.stop();
+    cockroach.clickAnimationOne.play();
+    cockroach.clickAnimationTwo.play();
+    setTimeout(function (){
+
+
+        // controls.enabled = false;
+        currentCamera = projectionScreenCamera;
+
+        // projectionScreenCamera.up()
+    
+        
+    }, cockroach.clickAnimationTwo.getClip().duration*1000-4000)
+
+    startCaptions('cockroach', cockroach.stateCounter+1);
+
+    const audioObject = document.getElementById( `cockroach-${cockroach.stateCounter+1}`);
+    console.log(audioObject.duration);
+    console.log(cockroach.clickAnimationTwo.getClip().duration);
+
+    setTimeout(function (){
+        cockroach.clickAnimationOne.stop();
+        cockroach.clickAnimationTwo.stop();
+        cockroach.clickAnimationOne.play();
+        cockroach.clickAnimationTwo.play();
+     
+
+        console.log('timer')
+
+        setTimeout(function (){
+            currentCamera = camera;
+            currentFocalPoint = cockroachFocalPoint;
+            currentTarget = cockroachCamera; 
+
+        }, 5000)
+
+    }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)
+
+    
+
+    cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
+        cockroach.sound.play();
+        currentlyPlaying = false;
+        console.log('cockroach audio ended');
+    }
+    cockroach.stateCounter = cockroach.stateCounter + 1;
+
+}
+
+function initializeCockroachSequences(){
+    cockroach.sequence[0] = cockroachSequenceOne;
 
 }
 
@@ -1105,11 +1234,11 @@ function audioControls (directory, audioNumber){
         console.log(directory);
         console.log(audioNumber);
         if (this.activeCues.length>0){
-            document.getElementById('caption-display').innerText = this.activeCues[0].text;
+            document.getElementById('caption-span').innerText = this.activeCues[0].text;
             console.log(this.activeCues[0].text);
         }
         else {
-            document.getElementById('caption-display').innerText = ' ';
+            document.getElementById('caption-span').innerText = ' ';
             console.log('silence');
         }
 
@@ -1131,7 +1260,8 @@ function init(){
     zombieMouseCamera.name = 'zombie-mouse-camera';
     cauldronCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
     cauldronCamera.name = 'cauldron-camera';
-    
+    projectionScreenCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    projectionScreenCamera.name = 'projection-screen-camera';
 
     currentCamera = camera;
 
@@ -1143,7 +1273,10 @@ function init(){
     document.body.appendChild(renderer.domElement);
 
     const captionDisplay = document.createElement('div');
+    const captionSpan = document.createElement('span');
     captionDisplay.id = 'caption-display';
+    captionSpan.id = 'caption-span';
+    captionDisplay.appendChild(captionSpan);
     document.body.appendChild(captionDisplay);
 
     // create an AudioListener and add it to the camera
@@ -1265,6 +1398,7 @@ function init(){
 
     initializespaceWitchSequences();
 
+    initializeCockroachSequences();
 
 
 
@@ -1277,7 +1411,7 @@ function init(){
     //make starfield
 
     function loadVideoTexture(){
-        projectionScreen.video = document.getElementById('video-1');
+        projectionScreen.video = document.getElementById('cockroach-vid-1');
         projectionScreen.videoTexture = new THREE.VideoTexture( projectionScreen.video );
         projectionScreen.videoTexture.flipY = false;
         // projectionScreen.videoTexture.rotation = Math.Pi/2;
@@ -1293,6 +1427,8 @@ function init(){
         });
 
     }
+
+
 
 
     loadVideoTexture()
@@ -1543,15 +1679,6 @@ const animate = function animate () {
     const intersects = raycaster.intersectObjects( raycasterArray, true );
 
 
-    if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'screen'){
-        console.log(projectionScreen.mesh.material);
-        console.log(projectionScreen.videoMaterial);
-        projectionScreen.video.play();
-        projectionScreen.mesh.material = projectionScreen.videoMaterial;
-        console.log(projectionScreen.mesh.material);
-
-    }
-
     // if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'Plane'){
     //     alpha = 0;
     //     destination = projectionScreen.gltfScene.position;
@@ -1581,7 +1708,7 @@ const animate = function animate () {
         currentTarget = zombieMouseCamera;
         alpha = 0;
 
-        if (zombieMouse.stateCounter <=(zombieMouse.sequence.length)){
+        if (zombieMouse.stateCounter <(zombieMouse.sequence.length)){
             postLerpAction = function(){
                 zombieMouse.sequence[zombieMouse.stateCounter]();
             };  
@@ -1631,37 +1758,14 @@ const animate = function animate () {
         alpha = 0;
         currentTarget = cockroachCamera;
         // controls.enabled = false;
-        if (cockroach.stateCounter <=(cockroach.speech.length-1)&& !currentlyPlaying){
+
+        
+        if (cockroach.stateCounter <(cockroach.sequence.length)){
             postLerpAction = function(){
-                currentlyPlaying = true;
-                cockroach.speech[cockroach.stateCounter].play();
-                cockroach.sound.stop();
-                cockroach.clickAnimationOne.stop();
-                cockroach.clickAnimationTwo.stop();
-                cockroach.clickAnimationOne.play();
-                cockroach.clickAnimationTwo.play();
-                startCaptions('cockroach', cockroach.stateCounter+1);
-                const audioObject = document.getElementById( `cockroach-${cockroach.stateCounter+1}`);
-                console.log(audioObject.duration);
-                console.log(cockroach.clickAnimationTwo.getClip().duration);
-                setTimeout(function (){
-                    cockroach.clickAnimationOne.stop();
-                    cockroach.clickAnimationTwo.stop();
-                    cockroach.clickAnimationOne.play();
-                    cockroach.clickAnimationTwo.play();
-                    console.log('timer')
-                }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)
-                cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
-                    cockroach.sound.play();
-                    currentlyPlaying = false;
-                    console.log('cockroach audio ended');
-                }
-                cockroach.stateCounter = cockroach.stateCounter + 1;
-
-
+                cockroach.sequence[cockroach.stateCounter]();
             };  
 
-        }  
+        } 
 
     }
 
@@ -1670,7 +1774,7 @@ const animate = function animate () {
 
         // currentCamera = cockroachCamera;
         currentFocalPoint = cauldronFocalPoint;
-        currentTarget = cauldronCamera;
+        currentTarget = initialCameraCube;
         alpha = 0;
     }
 
@@ -1727,7 +1831,6 @@ const animate = function animate () {
     let vector4 = cauldronFocalPoint.geometry.vertices[0].clone();
     vector4.applyMatrix4(cauldronFocalPoint.matrixWorld); 
     cauldronCamera.lookAt(vector4);
-
 
  
     roachTextureAnimation.update(1000 * delta);
