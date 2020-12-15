@@ -733,7 +733,7 @@ function loadCockroach(){
     // Loading in zombie mouse model
     const loader = new GLTFLoader();
 
-    loader.load('models/cockroach-combined-anim-1.gltf', function (gltf) {
+    loader.load('models/cockroach-combined-low-poly-small-texture-all-2.gltf', function (gltf) {
         cockroach.gltfScene = gltf.scene;
         // cockroach.gltfScene.position.x = 15;
         cockroach.gltfScene.position.y = 15;
