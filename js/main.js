@@ -19,6 +19,8 @@ let volumeState = true;
 
 let listener;
 
+let roachBabiesPoints;
+
 let cockroach = {
     gltfScene: null,
     boundingBox: null,
@@ -329,11 +331,11 @@ function roachBabies(){
         })
     material.side =  THREE.BackSide;
 
-    const roachBabies = new THREE.Points(roachGeometry, material);
+    roachBabiesPoints = new THREE.Points(roachGeometry, material);
     // cockroach.gltfScene.add(roachBabies);   
-    roachBabies.position.x = 1; 
-    roachBabies.position.y = 4;
-    roachBabies.position.z = -5; 
+    roachBabiesPoints.position.x = 1; 
+    roachBabiesPoints.position.y = 4;
+    roachBabiesPoints.position.z = -5; 
 
 }
 
@@ -1203,9 +1205,319 @@ function cockroachSequenceOne(){
     cockroach.stateCounter = cockroach.stateCounter + 1;
 
 }
+function cockroachSequenceTwo(){
+    currentlyPlaying = true;
+    cockroach.speech[cockroach.stateCounter].play();
+  
+    console.log(projectionScreen.mesh.material);
+    console.log(projectionScreen.videoMaterial[1]);
+    projectionScreen.video[1].play();
+    projectionScreen.mesh.material = projectionScreen.videoMaterial[1];
+    console.log(projectionScreen.mesh.material);
+
+    cockroach.sound.stop();
+    cockroach.clickAnimationOne.stop();
+    cockroach.clickAnimationTwo.stop();
+    cockroach.clickAnimationOne.play();
+    cockroach.clickAnimationTwo.play();
+    setTimeout(function (){
+
+
+        // controls.enabled = false;
+        currentCamera = projectionScreenCamera;
+
+        // projectionScreenCamera.up()
+    
+        
+    }, cockroach.clickAnimationTwo.getClip().duration*1000-4000)
+
+    startCaptions('cockroach', cockroach.stateCounter+1);
+
+    const audioObject = document.getElementById( `cockroach-${cockroach.stateCounter+1}`);
+    console.log(audioObject.duration);
+    console.log(cockroach.clickAnimationTwo.getClip().duration);
+
+    setTimeout(function (){
+        cockroach.clickAnimationOne.stop();
+        cockroach.clickAnimationTwo.stop();
+        cockroach.clickAnimationOne.play();
+        cockroach.clickAnimationTwo.play();
+     
+
+        console.log('timer')
+
+        setTimeout(function (){
+            currentCamera = camera;
+            currentFocalPoint = cockroachFocalPoint;
+            currentTarget = cockroachCamera; 
+
+        }, 5000)
+
+    }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)
+
+    
+
+    cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
+        cockroach.sound.play();
+        currentlyPlaying = false;
+        console.log('cockroach audio ended');
+    }
+    cockroach.stateCounter = cockroach.stateCounter + 1;
+
+}
+
+function cockroachSequenceThree(){
+    currentlyPlaying = true;
+    cockroach.speech[cockroach.stateCounter].play();
+  
+    console.log(projectionScreen.mesh.material);
+    console.log(projectionScreen.videoMaterial[2]);
+    projectionScreen.video[2].play();
+    projectionScreen.mesh.material = projectionScreen.videoMaterial[2];
+    console.log(projectionScreen.mesh.material);
+
+    cockroach.sound.stop();
+    cockroach.clickAnimationOne.stop();
+    cockroach.clickAnimationTwo.stop();
+    cockroach.clickAnimationOne.play();
+    cockroach.clickAnimationTwo.play();
+    setTimeout(function (){
+
+
+        // controls.enabled = false;
+        currentCamera = projectionScreenCamera;
+
+        // projectionScreenCamera.up()
+    
+        
+    }, cockroach.clickAnimationTwo.getClip().duration*1000-4000)
+
+    startCaptions('cockroach', cockroach.stateCounter+1);
+
+    const audioObject = document.getElementById( `cockroach-${cockroach.stateCounter+1}`);
+    console.log(audioObject.duration);
+    console.log(cockroach.clickAnimationTwo.getClip().duration);
+
+    setTimeout(function (){
+        cockroach.clickAnimationOne.stop();
+        cockroach.clickAnimationTwo.stop();
+        cockroach.clickAnimationOne.play();
+        cockroach.clickAnimationTwo.play();
+     
+
+        console.log('timer')
+
+        setTimeout(function (){
+            currentCamera = camera;
+            currentFocalPoint = cockroachFocalPoint;
+            currentTarget = cockroachCamera; 
+
+        }, 5000)
+
+    }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)
+
+    
+
+    cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
+        cockroach.sound.play();
+        currentlyPlaying = false;
+        console.log('cockroach audio ended');
+    }
+    cockroach.stateCounter = cockroach.stateCounter + 1;
+
+}
+
+function cockroachSequenceFour(){
+    currentlyPlaying = true;
+    cockroach.speech[cockroach.stateCounter].play();
+  
+    console.log(projectionScreen.mesh.material);
+    console.log(projectionScreen.videoMaterial[3]);
+    projectionScreen.video[3].play();
+    projectionScreen.mesh.material = projectionScreen.videoMaterial[3];
+    console.log(projectionScreen.mesh.material);
+
+    cockroach.sound.stop();
+    cockroach.clickAnimationOne.stop();
+    cockroach.clickAnimationTwo.stop();
+    cockroach.clickAnimationOne.play();
+    cockroach.clickAnimationTwo.play();
+    setTimeout(function (){
+
+
+        // controls.enabled = false;
+        currentCamera = projectionScreenCamera;
+
+        // projectionScreenCamera.up()
+    
+        
+    }, cockroach.clickAnimationTwo.getClip().duration*1000-4000)
+
+    startCaptions('cockroach', cockroach.stateCounter+1);
+
+    const audioObject = document.getElementById( `cockroach-${cockroach.stateCounter+1}`);
+    console.log(audioObject.duration);
+    console.log(cockroach.clickAnimationTwo.getClip().duration);
+
+    setTimeout(function(){
+        currentCamera = camera;
+        currentFocalPoint = spaceWitchFocalPoint;
+        currentTarget = spaceWitchCamera;        
+        
+        setTimeout(function (){
+            currentFocalPoint = cockroachFocalPoint;
+            currentTarget = cockroachCamera; 
+
+        }, 4000)
+    }, 35*1000)
+
+    setTimeout(function (){
+        cockroach.clickAnimationOne.stop();
+        cockroach.clickAnimationTwo.stop();
+        cockroach.clickAnimationOne.play();
+        cockroach.clickAnimationTwo.play();
+        console.log('timer')
+    }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)  
+
+    cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
+        cockroach.sound.play();
+        currentlyPlaying = false;
+        console.log('cockroach audio ended');
+    }
+    cockroach.stateCounter = cockroach.stateCounter + 1;
+}
+
+function cockroachSequenceFive(){
+
+    currentlyPlaying = true;
+    cockroach.speech[cockroach.stateCounter].play();
+  
+    console.log(projectionScreen.mesh.material);
+    console.log(projectionScreen.videoMaterial[4]);
+    projectionScreen.video[4].play();
+    projectionScreen.mesh.material = projectionScreen.videoMaterial[4];
+    console.log(projectionScreen.mesh.material);
+
+    cockroach.sound.stop();
+    cockroach.clickAnimationOne.stop();
+    cockroach.clickAnimationTwo.stop();
+    cockroach.clickAnimationOne.play();
+    cockroach.clickAnimationTwo.play();
+    setTimeout(function (){
+
+
+        // controls.enabled = false;
+        currentCamera = projectionScreenCamera;
+
+        // projectionScreenCamera.up()
+    
+        
+    }, cockroach.clickAnimationTwo.getClip().duration*1000-4000)
+
+    startCaptions('cockroach', cockroach.stateCounter+1);
+
+    const audioObject = document.getElementById( `cockroach-${cockroach.stateCounter+1}`);
+    console.log(audioObject.duration);
+    console.log(cockroach.clickAnimationTwo.getClip().duration);
+
+    setTimeout(function (){
+        cockroach.clickAnimationOne.stop();
+        cockroach.clickAnimationTwo.stop();
+        cockroach.clickAnimationOne.play();
+        cockroach.clickAnimationTwo.play();
+     
+
+        console.log('timer')
+
+        setTimeout(function (){
+            currentCamera = camera;
+            currentFocalPoint = cockroachFocalPoint;
+            currentTarget = cockroachCamera; 
+
+        }, 5000)
+
+    }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)
+
+    
+
+    cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
+        cockroach.sound.play();
+        currentlyPlaying = false;
+        console.log('cockroach audio ended');
+    }
+    cockroach.stateCounter = cockroach.stateCounter + 1;
+
+}
+
+function cockroachSequenceSix(){
+    currentlyPlaying = true;
+    cockroach.speech[cockroach.stateCounter].play();
+  
+   
+    cockroach.sound.stop();
+    cockroach.clickAnimationOne.stop();
+    cockroach.clickAnimationTwo.stop();
+    cockroach.clickAnimationOne.play();
+    cockroach.clickAnimationTwo.play();
+
+    setTimeout(function (){
+        // controls.enabled = false;
+        currentCamera = projectionScreenCamera;
+
+        // projectionScreenCamera.up()
+        
+    }, cockroach.clickAnimationTwo.getClip().duration*1000-4000)
+
+    setTimeout(function (){
+
+        cockroach.gltfScene.add(roachBabiesPoints);
+
+        
+    }, 12*1000)
+
+    startCaptions('cockroach', cockroach.stateCounter+1);
+
+    const audioObject = document.getElementById( `cockroach-${cockroach.stateCounter+1}`);
+    console.log(audioObject.duration);
+    console.log(cockroach.clickAnimationTwo.getClip().duration);
+
+    setTimeout(function (){
+        cockroach.clickAnimationOne.stop();
+        cockroach.clickAnimationTwo.stop();
+        cockroach.clickAnimationOne.play();
+        cockroach.clickAnimationTwo.play();
+     
+
+        console.log('timer')
+        setTimeout(function (){
+            currentCamera = camera;
+            currentFocalPoint = cockroachFocalPoint;
+            currentTarget = cockroachCamera; 
+
+        }, 5000)
+
+
+    }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)
+
+    
+
+    cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
+        cockroach.sound.play();
+        currentlyPlaying = false;
+        console.log('cockroach audio ended');
+    }
+    cockroach.stateCounter = cockroach.stateCounter + 1;
+
+}
+
 
 function initializeCockroachSequences(){
     cockroach.sequence[0] = cockroachSequenceOne;
+    cockroach.sequence[1] = cockroachSequenceTwo;
+    cockroach.sequence[2] = cockroachSequenceThree;
+    cockroach.sequence[3] = cockroachSequenceFour;
+    cockroach.sequence[4] = cockroachSequenceFive;
+    cockroach.sequence[5] = cockroachSequenceSix;
 
 
 }
