@@ -112,9 +112,8 @@ let projectionScreen = {
     material: null,
     animations: null,
     materialMap: null,
-    video: null,
-    videoTexture: null,
-    videoMaterial: null,
+    video: [],
+    videoMaterial: [],
     mixer: null,
     sound: null,
     speech: null,
@@ -187,15 +186,19 @@ function makeVideos(){
     
     spaceWitchSummonsVideo.load();
 
-    const cockroachVidOne = document.createElement("video");
-    cockroachVidOne.id = 'cockroach-vid-1';
-    cockroachVidOne.className = 'invisible-video';
-    document.body.appendChild(cockroachVidOne);
-    const cockroachVidOneSource = document.createElement('source');
-    cockroachVidOneSource.setAttribute('src','texture/cockroach/1.mp4');
-    cockroachVidOne.appendChild(cockroachVidOneSource);     
-    cockroachVidOne.load();
+    for (let i=0; i<6; i++){
+        const cockroachVidOne = document.createElement("video");
+        cockroachVidOne.id = `cockroach-vid-${i}`;
+        cockroachVidOne.className = 'invisible-video';
+        document.body.appendChild(cockroachVidOne);
+        const cockroachVidOneSource = document.createElement('source');
+        cockroachVidOneSource.setAttribute('src',`texture/cockroach/${i}.mp4`);
+        cockroachVidOne.appendChild(cockroachVidOneSource);     
+        cockroachVidOne.load();
 
+    }
+
+    
     
 }
 
@@ -1145,9 +1148,9 @@ function cockroachSequenceOne(){
     cockroach.speech[cockroach.stateCounter].play();
   
     console.log(projectionScreen.mesh.material);
-    console.log(projectionScreen.videoMaterial);
-    projectionScreen.video.play();
-    projectionScreen.mesh.material = projectionScreen.videoMaterial;
+    console.log(projectionScreen.videoMaterial[0]);
+    projectionScreen.video[0].play();
+    projectionScreen.mesh.material = projectionScreen.videoMaterial[0];
     console.log(projectionScreen.mesh.material);
 
     cockroach.sound.stop();
@@ -1203,6 +1206,7 @@ function cockroachSequenceOne(){
 
 function initializeCockroachSequences(){
     cockroach.sequence[0] = cockroachSequenceOne;
+
 
 }
 
@@ -1423,17 +1427,17 @@ function init(){
 
     //make starfield
 
-    function loadVideoTexture(){
-        projectionScreen.video = document.getElementById('cockroach-vid-1');
-        projectionScreen.videoTexture = new THREE.VideoTexture( projectionScreen.video );
-        projectionScreen.videoTexture.flipY = false;
+    function loadVideoTexture(i){
+        projectionScreen.video[i] = document.getElementById(`cockroach-vid-${i}`);
+        const videoTexture = new THREE.VideoTexture( projectionScreen.video[i] );
+        videoTexture.flipY = false;
         // projectionScreen.videoTexture.rotation = Math.Pi/2;
-        projectionScreen.videoTexture.format = THREE.RGBFormat;
+        videoTexture.format = THREE.RGBFormat;
         const color2 = new THREE.Color( 0x2194ce );
-        projectionScreen.videoMaterial = new THREE.MeshBasicMaterial({map: projectionScreen.videoTexture});
-        projectionScreen.videoMaterial.name = 'videoMaterial';
+        projectionScreen.videoMaterial[i] = new THREE.MeshBasicMaterial({map: videoTexture});
+        projectionScreen.videoMaterial[i].name = 'videoMaterial';
 
-        projectionScreen.video.addEventListener('ended', function(){
+        projectionScreen.video[i].addEventListener('ended', function(){
             console.log('video is done');
             projectionScreen.mesh.material = projectionScreen.originalMaterial;
     
@@ -1442,9 +1446,9 @@ function init(){
     }
 
 
-
-
-    loadVideoTexture()
+    for (let i = 0; i<6; i++){
+        loadVideoTexture(i);
+    }
 
 
     // //sky
