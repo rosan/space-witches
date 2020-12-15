@@ -61,6 +61,21 @@ div, .overlay {
     display: none !important;
 }
 
+.invisible{
+    display: none !important;
+}
+
+.loading{
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+}
+.loading p{
+    color: seashell;
+}
+
 .dream-video-div{
     background: black;
     display: flex;

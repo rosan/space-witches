@@ -207,6 +207,15 @@ function makeVideos(){
 
 makeVideos();
 
+function makeLoadingScreen(){
+    const div =  document.createElement('div');
+    div.id = 'loading-screen';
+    div.className = 'invisible';
+    div.innerHTML += '<p>Loading</p>'   
+    document.body.appendChild(div);
+}
+makeLoadingScreen();
+
 //make overlay div
 const overlay = document.createElement("div");
 document.body.appendChild(overlay); 
@@ -1577,6 +1586,11 @@ function audioControls (directory, audioNumber){
 
 
 function init(){
+   
+    const div = document.getElementById('loading-screen');
+    div.classList.add('loading');
+    div.classList.remove('invisible');
+
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.01, 1000);
     scene.add(camera);
@@ -1926,9 +1940,18 @@ let up = true;
 
 const animate = function animate () { 
     requestAnimationFrame(animate);
+
+
     if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene||!projectionScreen.gltfScene ){return;}
 
+
+
+
     if (doOnce==1){
+        const div = document.getElementById('loading-screen');
+        div.classList.add('invisible');
+        div.classList.remove('dream-video-div');
+        
         console.log(camera.position);
         currentTarget = initialCameraCube;
         currentFocalPoint=centralCube;
