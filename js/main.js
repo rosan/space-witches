@@ -10,6 +10,8 @@ let centralCube, centralMouseCube, centralRoachCube, centralCauldronCube;
 
 let cube1, cube2, cube3, sphere1, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, cauldronFocalPoint, initialDestination, quaternionDestination, initialCameraCube, porjectionScreenFocalPoint;
 
+let spaceWitchFocalPointClose, spaceWitchPointClose;
+
 let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera, cauldronCamera, projectionScreenCamera;
 
 let currentlyPlaying;
@@ -913,6 +915,16 @@ function loadSpaceWitch(){
         spaceWitch.gltfScene.add(spaceWitchFocalPoint );
         spaceWitchFocalPoint.visible = false;
 
+        spaceWitchFocalPointClose =  new THREE.Mesh(geometry);
+        spaceWitchFocalPointClose.position.set(0,7,0);
+        spaceWitchFocalPointClose.visible = false;
+        spaceWitch.gltfScene.add(spaceWitchFocalPointClose);
+
+        spaceWitchPointClose = new THREE.Mesh(geometry)
+        spaceWitchPointClose.position.set(-3,7,0);
+        spaceWitchPointClose.visible = false;
+        spaceWitch.gltfScene.add(spaceWitchPointClose);
+
 
 
          //Animations
@@ -1149,8 +1161,42 @@ function spaceWitchSequenceOne(){
 
 }
 
+function spaceWitchSequenceTwo(){
+    currentlyPlaying = true;
+    // spaceWitch.sound.stop();
+
+    spaceWitch.speech[2].play();
+    startCaptions('space-witch', 3);
+
+    setTimeout(function (){
+        currentTarget=cauldronCamera;
+        currentFocalPoint=cauldronFocalPoint; 
+        setTimeout(function (){
+            alpha = 0;
+            currentTarget=spaceWitchCamera;
+            currentFocalPoint=spaceWitchFocalPoint; 
+
+            setTimeout(function (){
+                currentTarget=spaceWitchPointClose;
+                currentFocalPoint=spaceWitchFocalPointClose; 
+            },7*1000)
+        },7*1000)
+
+    },5*1000),
+    
+    spaceWitch.speech[2].source.onended = (event) => {
+        console.log('space witch audio ended');
+                currentlyPlaying = false;        
+    }
+
+    console.log(`space witch state counter is ${spaceWitch.stateCounter}`);
+    spaceWitch.stateCounter = spaceWitch.stateCounter + 1;
+
+}
+
 function initializespaceWitchSequences(){
-    spaceWitch.sequence[0] = spaceWitchSequenceOne;
+    spaceWitch.sequence[1] = spaceWitchSequenceOne;
+    spaceWitch.sequence[0] = spaceWitchSequenceTwo;
 
 }
 
@@ -1370,15 +1416,15 @@ function cockroachSequenceFour(){
 
     setTimeout(function(){
         currentCamera = camera;
-        currentFocalPoint = spaceWitchFocalPoint;
-        currentTarget = spaceWitchCamera;        
+        currentFocalPoint = spaceWitchFocalPointClose;
+        currentTarget = spaceWitchPointClose;        
         
         setTimeout(function (){
             currentFocalPoint = cockroachFocalPoint;
             currentTarget = cockroachCamera; 
 
-        }, 4000)
-    }, 35*1000)
+        }, 3000)
+    }, 34*1000)
 
     setTimeout(function (){
         cockroach.clickAnimationOne.stop();
@@ -1951,7 +1997,7 @@ const animate = function animate () {
         const div = document.getElementById('loading-screen');
         div.classList.add('invisible');
         div.classList.remove('dream-video-div');
-        
+
         console.log(camera.position);
         currentTarget = initialCameraCube;
         currentFocalPoint=centralCube;
@@ -2183,6 +2229,10 @@ const animate = function animate () {
     let vector4 = cauldronFocalPoint.geometry.vertices[0].clone();
     vector4.applyMatrix4(cauldronFocalPoint.matrixWorld); 
     cauldronCamera.lookAt(vector4);
+
+    let vector5 = spaceWitchFocalPointClose.geometry.vertices[0].clone();
+    vector5.applyMatrix4(spaceWitchFocalPointClose.matrixWorld); 
+    spaceWitchPointClose.lookAt(vector5);
 
  
     roachTextureAnimation.update(1000 * delta);
