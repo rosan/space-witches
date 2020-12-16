@@ -203,6 +203,39 @@ function makeVideos(){
     }
 
     
+    for (let i=0; i<5; i++){
+        const cauldronVid = document.createElement("video");
+        cauldronVid.id = `cauldron-vid-${i}`;
+        cauldronVid.className = 'invisible-video';
+        document.body.appendChild(cauldronVid);
+        const cauldronVidSource = document.createElement('source');
+        cauldronVidSource.setAttribute('src',`texture/cauldron/${i}.mp4`);
+        cauldronVid.appendChild(cauldronVidSource);     
+        cauldronVid.load();
+    }
+
+    for (let i=0; i<4; i++){
+        const spacWitchVid = document.createElement("video");
+        spacWitchVid.id = `space-witch-vid-${i}`;
+        spacWitchVid.className = 'invisible-video';
+        document.body.appendChild(spacWitchVid);
+        const spacWitchVidSource = document.createElement('source');
+        spacWitchVidSource.setAttribute('src',`texture/space-witch/${i}.mp4`);
+        spacWitchVid.appendChild(spacWitchVidSource);     
+        spacWitchVid.load();
+    }
+
+    for (let i=0; i<3; i++){
+        const mouseVid = document.createElement("video");
+        mouseVid.id = `mouse-vid-${i}`;
+        mouseVid.className = 'invisible-video';
+        document.body.appendChild(mouseVid);
+        const mouseVidSource = document.createElement('source');
+        mouseVidSource.setAttribute('src',`texture/mouse/${i}.mp4`);
+        mouseVid.appendChild(mouseVidSource);     
+        mouseVid.load();
+    }
+
     
 }
 
