@@ -1309,9 +1309,9 @@ function spaceWitchSequenceThree(){
 
 
 function initializespaceWitchSequences(){
-    spaceWitch.sequence[2] = spaceWitchSequenceOne;
+    spaceWitch.sequence[0] = spaceWitchSequenceOne;
     spaceWitch.sequence[1] = spaceWitchSequenceTwo;
-    spaceWitch.sequence[0] = spaceWitchSequenceThree;
+    spaceWitch.sequence[2] = spaceWitchSequenceThree;
 
 
 }
