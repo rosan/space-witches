@@ -134,7 +134,7 @@ let delta = 0;
 
 
 function muteGlobalAudio(){
-    const button = document.getElementById('mute-button');
+    const button = document.getElementById('mute-trigger');
 
     if (volumeState){
         for (let i = 0; i < allAudio.length; i++){
@@ -1810,14 +1810,18 @@ function init(){
     });
         
 
-    //make mute button
-    const muteButton = document.createElement("button");
-    overlay.appendChild(muteButton); 
-    muteButton.id = "mute-button";
-    let text2 = document.createTextNode("mute");
-    text.id = "button-text";
-    muteButton.appendChild(text2);
-    muteButton.addEventListener('click', muteGlobalAudio, false);
+
+    const muteCheckBox = document.createElement("input");
+    muteCheckBox.id = "mute-trigger";
+    muteCheckBox.type = "checkbox";
+    const label = document.createElement("label");
+    label.setAttribute("for","mute-trigger");
+    label.className = "mute-checker";
+    label.innerText = "mute";
+    document.body.appendChild(muteCheckBox); 
+    document.body.appendChild(label); 
+    muteCheckBox.addEventListener('change', muteGlobalAudio, false);
+
 
     
     // Controls
