@@ -60,6 +60,8 @@ let zombieMouse = {
     speech: [],
     stateCounter: 0,
     sequence: [],
+    video: [],
+    videoMaterial: [],
 }
 
 let cauldron = {
@@ -73,6 +75,8 @@ let cauldron = {
     mixer: null,
     sound: null,
     speech: null,
+    video: [],
+    videoMaterial: [],
 }
 
 let spaceWitch= {
@@ -203,7 +207,7 @@ function makeVideos(){
     }
 
     
-    for (let i=0; i<5; i++){
+    for (let i=0; i<6; i++){
         const cauldronVid = document.createElement("video");
         cauldronVid.id = `cauldron-vid-${i}`;
         cauldronVid.className = 'invisible-video';
@@ -214,7 +218,7 @@ function makeVideos(){
         cauldronVid.load();
     }
 
-    for (let i=0; i<4; i++){
+    for (let i=0; i<3; i++){
         const spacWitchVid = document.createElement("video");
         spacWitchVid.id = `space-witch-vid-${i}`;
         spacWitchVid.className = 'invisible-video';
@@ -225,7 +229,7 @@ function makeVideos(){
         spacWitchVid.load();
     }
 
-    for (let i=0; i<3; i++){
+    for (let i=0; i<2; i++){
         const mouseVid = document.createElement("video");
         mouseVid.id = `mouse-vid-${i}`;
         mouseVid.className = 'invisible-video';
@@ -573,29 +577,56 @@ function makeInitialCameraCube(){
 
 function loadCauldronVideoTextures(){
 
-    cauldron.video = document.getElementById('cauldron-default-video');
-    cauldron.videoTexture = new THREE.VideoTexture( cauldron.video );
-    cauldron.videoTexture.flipY = false;
-    // projectionScreen.videoTexture.rotation = Math.Pi/2;
-    cauldron.videoTexture.format = THREE.RGBFormat;
-    cauldron.videoMaterial = new THREE.MeshBasicMaterial({map: cauldron.videoTexture});
-    cauldron.videoMaterial.name = 'cauldronVideoMaterial';
+   for(let i=0; i<6; i++){
+    cauldron.video[i] = document.getElementById(`cauldron-vid-${i}`);
+    const videoTexture = new THREE.VideoTexture( cauldron.video[i] );
+    videoTexture.flipY = false;
+    videoTexture.format = THREE.RGBFormat;
+    cauldron.videoMaterial[i] = new THREE.MeshBasicMaterial({map: videoTexture});
+    cauldron.videoMaterial[i].name = `cauldronVideoMaterial-${i}`;
 
     console.log(cauldron.mesh.material);
-    console.log(cauldron.videoMaterial);
-    cauldron.video.loop = true;
-    cauldron.video.play();
-    cauldron.mesh.material = cauldron.videoMaterial;
-    console.log(cauldron.mesh.material);
+    console.log(cauldron.videoMaterial[i]);
 
-    cauldron.video.addEventListener('ended', function(){
-        console.log('cauldron video is done');
-        // cauldron.mesh.material = cauldron.originalMaterial;
-    });
+    if(i!=4){
+        cauldron.video[i].addEventListener('ended', function(){
+            console.log('cauldron video is done');
+            cauldron.mesh.material = cauldron.videoMaterial[4];
+            cauldron.video[4].play();
+            cauldron.video[4].loop = true;
+        });
+    }
+    else if (i==4){
+        cauldron.mesh.material = cauldron.videoMaterial[4];
+        cauldron.video[4].play();
+        cauldron.video[4].loop = true;
 
+    }
+    
+   }
 
 
 }   
+
+function loadZombieMouseVideoTextures(){
+    for(let i=0; i<2; i++){
+        zombieMouse.video[i] = document.getElementById(`mouse-vid-${i}`);
+        const videoTexture = new THREE.VideoTexture( zombieMouse.video[i] );
+        videoTexture.flipY = false;
+        videoTexture.format = THREE.RGBFormat;
+        zombieMouse.videoMaterial[i] = new THREE.MeshBasicMaterial({map: videoTexture});
+        zombieMouse.videoMaterial[i].name = `zombieMouseMaterial-${i}`;
+
+        console.log(zombieMouse.videoMaterial[i]);
+
+
+        zombieMouse.video[i].addEventListener('ended', function(){
+            console.log('zombieMouse video is done');
+        })
+    }
+}   
+
+
 
 function loadProjectionScreen (){
     const loader = new GLTFLoader();
@@ -683,7 +714,7 @@ function loadCauldron (){
 
         cauldron.gltfScene.add(cauldronCamera);
         cauldronCamera.position.x = 0;
-        cauldronCamera.position.y = 10;
+        cauldronCamera.position.y = 8;
         cauldronCamera.position.z = 0;
 
         const cauldronLight1 = new THREE.PointLight( 0x3461eb, 0.001, 100 );
@@ -954,9 +985,10 @@ function loadSpaceWitch(){
         spaceWitch.gltfScene.add(spaceWitchFocalPointClose);
 
         spaceWitchPointClose = new THREE.Mesh(geometry)
-        spaceWitchPointClose.position.set(-3,7,0);
+        spaceWitchPointClose.position.set(-2,7,0);
         spaceWitchPointClose.visible = false;
         spaceWitch.gltfScene.add(spaceWitchPointClose);
+        spaceWitchPointClose.lookAt(spaceWitchFocalPointClose);
 
 
 
@@ -1028,6 +1060,7 @@ function loadZombieMouse(){
         zombieMouse.materialMap = zombieMouse.mesh[0].material.map;
 
         makeZombiMouseBoundingBox ();
+        loadZombieMouseVideoTextures();
         zombieMouse.gltfScene.add(cube1);
 
         zombieMouse.gltfScene.add(zombieMouseCamera);
@@ -1203,23 +1236,30 @@ function spaceWitchSequenceTwo(){
 
     setTimeout(function (){
         currentTarget=cauldronCamera;
-        currentFocalPoint=cauldronFocalPoint; 
+        currentFocalPoint=cauldronFocalPoint;
+        console.log(cauldron.video[5].name);
+        cauldron.mesh.material = cauldron.videoMaterial[5];
+        cauldron.video[5].play();
+
         setTimeout(function (){
             alpha = 0;
             currentTarget=spaceWitchCamera;
             currentFocalPoint=spaceWitchFocalPoint; 
 
+
             setTimeout(function (){
                 currentTarget=spaceWitchPointClose;
                 currentFocalPoint=spaceWitchFocalPointClose; 
-            },7*1000)
-        },7*1000)
+            },10*1000)
+        },10*1000)
 
-    },5*1000),
+    },1*1000),
     
     spaceWitch.speech[2].source.onended = (event) => {
         console.log('space witch audio ended');
-                currentlyPlaying = false;        
+        currentlyPlaying = false;  
+        currentTarget=spaceWitchCamera;
+        currentFocalPoint=spaceWitchFocalPoint;       
     }
 
     console.log(`space witch state counter is ${spaceWitch.stateCounter}`);
@@ -1227,9 +1267,52 @@ function spaceWitchSequenceTwo(){
 
 }
 
+function spaceWitchSequenceThree(){
+    currentlyPlaying = true;
+    // spaceWitch.sound.stop();
+
+    spaceWitch.speech[3].play();
+    startCaptions('space-witch', 4);
+
+    // setTimeout(function (){
+    //     currentTarget=cauldronCamera;
+    //     currentFocalPoint=cauldronFocalPoint;
+    //     console.log(cauldron.video[5].name);
+    //     cauldron.mesh.material = cauldron.videoMaterial[5];
+    //     cauldron.video[5].play();
+
+    //     setTimeout(function (){
+    //         alpha = 0;
+    //         currentTarget=spaceWitchCamera;
+    //         currentFocalPoint=spaceWitchFocalPoint; 
+
+
+    //         setTimeout(function (){
+    //             currentTarget=spaceWitchPointClose;
+    //             currentFocalPoint=spaceWitchFocalPointClose; 
+    //         },10*1000)
+    //     },10*1000)
+
+    // },1*1000),
+    
+    spaceWitch.speech[3].source.onended = (event) => {
+        console.log('space witch audio ended');
+        currentlyPlaying = false;  
+        currentTarget=spaceWitchCamera;
+        currentFocalPoint=spaceWitchFocalPoint;       
+    }
+
+    console.log(`space witch state counter is ${spaceWitch.stateCounter}`);
+    spaceWitch.stateCounter = spaceWitch.stateCounter + 1;
+
+}
+
+
 function initializespaceWitchSequences(){
-    spaceWitch.sequence[1] = spaceWitchSequenceOne;
-    spaceWitch.sequence[0] = spaceWitchSequenceTwo;
+    spaceWitch.sequence[2] = spaceWitchSequenceOne;
+    spaceWitch.sequence[1] = spaceWitchSequenceTwo;
+    spaceWitch.sequence[0] = spaceWitchSequenceThree;
+
 
 }
 
@@ -1854,6 +1937,7 @@ function init(){
     for (let i = 0; i<6; i++){
         loadVideoTexture(i);
     }
+    
 
 
     // //sky
@@ -1873,6 +1957,7 @@ function init(){
     const videoMaterial = new THREE.MeshBasicMaterial({map: videoTexture});
     videoMaterial.side =  THREE.BackSide;
     videoSphere = new THREE.Mesh(videoSphereGeometry, videoMaterial);
+    loadZombieMouseVideoTextures(); 
 
     
     cockroach.sound = new THREE.PositionalAudio( listener );
@@ -2263,9 +2348,9 @@ const animate = function animate () {
     vector4.applyMatrix4(cauldronFocalPoint.matrixWorld); 
     cauldronCamera.lookAt(vector4);
 
-    let vector5 = spaceWitchFocalPointClose.geometry.vertices[0].clone();
-    vector5.applyMatrix4(spaceWitchFocalPointClose.matrixWorld); 
-    spaceWitchPointClose.lookAt(vector5);
+    // let vector5 = spaceWitchFocalPointClose.geometry.vertices[0].clone();
+    // vector5.applyMatrix4(spaceWitchFocalPointClose.matrixWorld); 
+    // spaceWitchPointClose.lookAt(vector5);
 
  
     roachTextureAnimation.update(1000 * delta);
