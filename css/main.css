@@ -86,6 +86,7 @@ div, .overlay {
     position: fixed;
     text-align: center;
     display: block;
+    background-color: transparent;
 }
 
 #caption-display span {

@@ -1702,6 +1702,12 @@ function runProgram (event) {
 function startCaptions(directory, audioNumber){
     const audio = document.getElementById(`${directory}-${audioNumber}`);
     audio.play(); 
+
+    const div = document.getElementById('caption-display');
+    div.classList.remove ('invisible');
+    audio.onended = function(){
+        div.className = 'invisible';
+    }
 }
 
 
@@ -1743,6 +1749,7 @@ function audioControls (directory, audioNumber){
         }
 
     },false)
+
 }
 
 
@@ -1780,6 +1787,7 @@ function init(){
     const captionDisplay = document.createElement('div');
     const captionSpan = document.createElement('span');
     captionDisplay.id = 'caption-display';
+    captionDisplay.className = 'invisible';
     captionSpan.id = 'caption-span';
     captionDisplay.appendChild(captionSpan);
     document.body.appendChild(captionDisplay);
