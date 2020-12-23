@@ -14,6 +14,8 @@ let spaceWitchFocalPointClose, spaceWitchPointClose;
 
 let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera, cauldronCamera, projectionScreenCamera;
 
+let envMap;
+
 let currentlyPlaying;
 let allAudio = [];
 let volumeState = true;
@@ -87,13 +89,46 @@ let spaceWitch= {
     animations: null,
     materialMap: null,
     hoverMaterial: null,
-    hoverMaterial: null,
     mixer: null,
     sound: null,
     speech: null,
     body: null,
     array: null,
     hat: {
+        material: null,
+        mesh: null,
+    },
+    cloak1: {
+        material: null,
+        mesh: null,
+    },
+    cloak2: {
+        material: null,
+        mesh: null,
+    },
+    top: {
+        material: null,
+        mesh: null,
+    },
+    legs1: {
+        material: null,
+        mesh: null,
+    },
+    legs2: {
+        material: null,
+        mesh: null,
+    },
+    legs3: {
+        material: null,
+        mesh: null,
+    },
+
+    rightArm: {
+        material: null,
+        mesh: null,
+    },
+
+    leftArm: {
         material: null,
         mesh: null,
     },
@@ -971,6 +1006,10 @@ function loadSpaceWitch(){
 
         // center.x += 10;
 
+        const witchLight = new THREE.PointLight( 0x03d3fc, 0.1, 10);
+        witchLight.position.set(-3,5,0)
+        spaceWitch.gltfScene.add(witchLight);
+
         const geometry = new THREE.BoxGeometry(2,2,2);
         spaceWitchFocalPoint = new THREE.Mesh(geometry);
         spaceWitchFocalPoint.position.x = center.x;
@@ -1027,7 +1066,35 @@ function loadSpaceWitch(){
 
 
         spaceWitch.hat.mesh = spaceWitch.gltfScene.getObjectByName("hat-2001_0",true);
-        spaceWitch.hat.material = spaceWitch.hat.mesh.material;
+        spaceWitch.hat.materialMap = spaceWitch.hat.mesh.material.map;
+        
+
+        console.log('space Witch scene is');
+        console.log(spaceWitch.gltfScene);
+        spaceWitch.legs1.mesh = spaceWitch.gltfScene.getObjectByName("Cylinder001_0",true);
+        spaceWitch.legs1.materialMap = spaceWitch.legs1.mesh.material.map;
+        
+
+        spaceWitch.legs2.mesh = spaceWitch.gltfScene.getObjectByName("Cylinder.001_1_1",true);
+        spaceWitch.legs2.materialMap = spaceWitch.legs2.mesh.material.map;
+
+        spaceWitch.legs3.mesh = spaceWitch.gltfScene.getObjectByName("Cylinder.001_2_2",true);
+        spaceWitch.legs3.materialMap = spaceWitch.legs3.mesh.material.map;
+
+        spaceWitch.cloak1.mesh = spaceWitch.gltfScene.getObjectByName("back-cloak",true);
+        spaceWitch.cloak1.materialMap = spaceWitch.cloak1.mesh.material.map;
+
+        spaceWitch.top.mesh = spaceWitch.gltfScene.getObjectByName("top",true);
+        spaceWitch.top.materialMap = spaceWitch.top.mesh.material.map;
+
+        spaceWitch.leftArm.mesh = spaceWitch.gltfScene.getObjectByName("left-arm",true);
+        spaceWitch.leftArm.materialMap = spaceWitch.leftArm.mesh.material.map;
+
+        spaceWitch.rightArm.mesh = spaceWitch.gltfScene.getObjectByName("right-arm-mesh001",true);
+        spaceWitch.rightArm.materialMap = spaceWitch.rightArm.mesh.material.map;
+
+
+
 
  
      }, undefined, function ( error ) {
@@ -1107,6 +1174,114 @@ function loadZombieMouse(){
         console.error( error );
 
     } );
+
+}
+
+function setSpaceWitchHoverTexture(){
+    spaceWitch.hat.mesh.material.map=spaceWitch.hoverTexture;
+    spaceWitch.hat.mesh.material.transparent=true;
+    spaceWitch.hat.mesh.material.opacity = 0.7;
+    spaceWitch.hat.mesh.material.emissiveIntensity = 0.02;
+    spaceWitch.hat.mesh.material.emissive.set(0x0d10ba);
+    
+    // spaceWitch.hat.mesh.material.roughness = 0.3;
+    // spaceWitch.hat.mesh.material.metalness = 0.5;
+
+
+    spaceWitch.legs1.mesh.material.map=spaceWitch.hoverTexture;
+    spaceWitch.legs1.mesh.material.transparent=true;
+    spaceWitch.legs1.mesh.material.opacity = 0.7;
+    spaceWitch.legs1.mesh.material.emissiveIntensity = 0.02;
+    spaceWitch.legs1.mesh.material.emissive.set(0x5639fa);
+
+    spaceWitch.legs2.mesh.material.map=spaceWitch.hoverTexture;
+    spaceWitch.legs2.mesh.material.transparent=true;
+    spaceWitch.legs2.mesh.material.opacity = 0.7;
+    spaceWitch.legs2.mesh.material.emissiveIntensity = 0.02;
+    spaceWitch.legs2.mesh.material.emissive.set(0x5639fa);
+
+    spaceWitch.legs3.mesh.material.map=spaceWitch.hoverTexture;
+    spaceWitch.legs3.mesh.material.transparent=true;
+    spaceWitch.legs3.mesh.material.opacity = 0.7;
+    spaceWitch.legs3.mesh.material.emissiveIntensity = 0.02;
+    spaceWitch.legs3.mesh.material.emissive.set(0x5639fa);
+
+    spaceWitch.top.mesh.material.map=spaceWitch.hoverTexture;
+    spaceWitch.top.mesh.material.transparent=true;
+    spaceWitch.top.mesh.material.opacity = 0.7;
+    spaceWitch.top.mesh.material.emissiveIntensity = 0.1;
+    spaceWitch.top.mesh.material.emissive.set(0x0d10ba);
+
+    spaceWitch.rightArm.mesh.material.map=spaceWitch.hoverTexture;
+    spaceWitch.rightArm.mesh.material.transparent=true;
+    spaceWitch.rightArm.mesh.material.opacity = 0.7;
+    spaceWitch.rightArm.mesh.material.emissiveIntensity = 0.02;
+    spaceWitch.rightArm.mesh.material.emissive.set(0x0d10ba);
+
+    spaceWitch.leftArm.mesh.material.map=spaceWitch.hoverTexture;
+    spaceWitch.leftArm.mesh.material.transparent=true;
+    spaceWitch.leftArm.mesh.material.opacity = 0.7;
+    spaceWitch.leftArm.mesh.material.emissiveIntensity = 0.02;
+    spaceWitch.leftArm.mesh.material.emissive.set(0x0d10ba);
+
+    spaceWitch.cloak1.mesh.material.map=spaceWitch.hoverTexture;
+    spaceWitch.cloak1.mesh.material.transparent=true;
+    spaceWitch.cloak1.mesh.material.opacity = 0.7;
+    spaceWitch.cloak1.mesh.material.emissiveIntensity = 0.03;
+    spaceWitch.cloak1.mesh.material.emissive.set(0x6b25f7);
+}
+
+function unsetSpaceWitchHoverTexture(){
+    spaceWitch.hat.mesh.material.map = spaceWitch.hat.materialMap;
+    spaceWitch.hat.mesh.material.transparent=false;
+    spaceWitch.hat.mesh.material.opacity = 1;
+    spaceWitch.hat.mesh.material.emissiveIntensity = 1;
+    spaceWitch.hat.mesh.material.emissive.set(0x000000);
+
+    // spaceWitch.hat.mesh.material.roughness = 1;
+    // spaceWitch.hat.mesh.material.metalness = 0;
+
+    spaceWitch.legs1.mesh.material.map=spaceWitch.legs1.materialMap;
+    spaceWitch.legs1.mesh.material.transparent=false;
+    spaceWitch.legs1.mesh.material.opacity = 1;
+    spaceWitch.legs1.mesh.material.emissiveIntensity = 1;
+    spaceWitch.legs1.mesh.material.emissive.set(0x000000);
+
+    spaceWitch.legs2.mesh.material.map=spaceWitch.legs2.materialMap;
+    spaceWitch.legs2.mesh.material.transparent=false;
+    spaceWitch.legs2.mesh.material.opacity = 1;
+    spaceWitch.legs2.mesh.material.emissiveIntensity = 1;
+    spaceWitch.legs2.mesh.material.emissive.set(0x000000);
+
+    spaceWitch.legs3.mesh.material.map=spaceWitch.legs3.materialMap;
+    spaceWitch.legs3.mesh.material.transparent=false;
+    spaceWitch.legs3.mesh.material.opacity = 1;
+    spaceWitch.legs3.mesh.material.emissiveIntensity = 1;
+    spaceWitch.legs3.mesh.material.emissive.set(0x000000);
+
+    spaceWitch.top.mesh.material.map=spaceWitch.top.materialMap;
+    spaceWitch.top.mesh.material.transparent=false;
+    spaceWitch.top.mesh.material.opacity = 1;
+    spaceWitch.top.mesh.material.emissiveIntensity = 1;
+    spaceWitch.top.mesh.material.emissive.set(0x000000);
+
+    spaceWitch.rightArm.mesh.material.map=spaceWitch.top.materialMap;
+    spaceWitch.rightArm.mesh.material.transparent=false;
+    spaceWitch.rightArm.mesh.material.opacity = 1;
+    spaceWitch.rightArm.mesh.material.emissiveIntensity = 1;
+    spaceWitch.rightArm.mesh.material.emissive.set(0x000000);
+
+    spaceWitch.leftArm.mesh.material.map=spaceWitch.top.materialMap;
+    spaceWitch.leftArm.mesh.material.transparent=false;
+    spaceWitch.leftArm.mesh.material.opacity = 1;
+    spaceWitch.leftArm.mesh.material.emissiveIntensity = 1;
+    spaceWitch.leftArm.mesh.material.emissive.set(0x000000);
+
+    spaceWitch.cloak1.mesh.material.map=spaceWitch.cloak1.materialMap;
+    spaceWitch.cloak1.mesh.material.transparent=false;
+    spaceWitch.cloak1.mesh.material.opacity = 1;
+    spaceWitch.cloak1.mesh.material.emissiveIntensity = 1;
+    spaceWitch.cloak1.mesh.material.emissive.set(0x000000);
 
 }
 
@@ -1917,13 +2092,36 @@ function init(){
 
     initializeCockroachSequences();
 
+    function loadEnvTexture(){
+        const loader = new THREE.CubeTextureLoader();
+        loader.setPath( 'texture/skybox/' );
+    
+        envMap = loader.load( [
+        'test-back.png', 'test-back.png',
+        'test-back.png', 'test-back.png',
+        'test-back.png', 'test-back.png'
+        ] );
 
+    }
+    loadEnvTexture()
 
     zombieMouse.hoverTexture = new THREE.TextureLoader().load('texture/brick-texture.jpg');
+    // zombieMouse.hoverMaterial = new THREE.MeshStandardMaterial({map: zombieMouse.hoverTexture});
     zombieMouse.hoverMaterial = new THREE.MeshStandardMaterial({map: zombieMouse.hoverTexture});
 
-    spaceWitch.hoverMaterial = new THREE.MeshBasicMaterial();
-    
+
+    spaceWitch.hoverMaterial = new THREE.MeshBasicMaterial({ envMap: envMap });
+    spaceWitch.hoverTexture = new THREE.TextureLoader().load('texture/blue-sky.png');
+    spaceWitch.hoverTexture.wrapS = THREE.RepeatWrapping;
+    spaceWitch.hoverTexture.wrapT = THREE.RepeatWrapping;
+    spaceWitch.hoverTexture.flipY = false;
+    // spaceWitch.hoverMaterial.color.set(0xa1ff);
+    // spaceWitch.hoverMaterial.emissive.set(0x7100ff);
+    // spaceWitch.hoverMaterial.reflectivity = 0.99;
+
+    // const envGeo = new THREE.BoxGeometry(10,10,10);
+    // const envCube = new THREE.Mesh(envGeo,spaceWitch.hoverMaterial);
+    // scene.add(envCube);
 
     //make starfield
 
@@ -2250,11 +2448,17 @@ const animate = function animate () {
     if(intersects.length > 0 && intersects[0].object.name=='space-witch-bounding-box' && (mouse.hoverTouch === null || mouse.hoverTouch)&& !currentlyPlaying){
         console.log('space-witch-hover');
 
-        spaceWitch.hat.mesh.material=spaceWitch.hoverMaterial;
+       
+        setSpaceWitchHoverTexture();
+
+
 
     }
     else{
-        spaceWitch.hat.mesh.material = spaceWitch.hat.material;
+        
+        unsetSpaceWitchHoverTexture()
+
+
     }
 
 
