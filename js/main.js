@@ -1425,8 +1425,8 @@ function spaceWitchSequenceTwo(){
             setTimeout(function (){
                 currentTarget=spaceWitchPointClose;
                 currentFocalPoint=spaceWitchFocalPointClose; 
-            },10*1000)
-        },10*1000)
+            },4000)
+        },17*1000)
 
     },1*1000),
     
