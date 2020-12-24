@@ -42,6 +42,7 @@ let cockroach = {
         material: null,
         mesh: null,
     },
+    meshes: [],
     clickAnimationOne: null,
     clickAnimationTwo: null,
     stateCounter: 0,
@@ -864,6 +865,25 @@ function loadCockroach(){
         console.log(gltf);
         console.log(cockroach.gltfScene);
 
+        cockroach.gltfScene.traverse(function(o){
+            if(o.type == "Mesh" || o.type == "SkinnedMesh" ){
+                o.material.envMap = envMap;
+                cockroach.meshes.push({
+                    mesh: o,
+                    material: o.material,
+                    materialMap: o.material.map,
+                    opacity: o.material.opacity,
+                    roughness: o.material.roughness,
+                    metalness: o.material.metalness,
+
+                })
+
+            }
+
+        });
+
+        console.log(cockroach.meshes); 
+
         cockroachBoundingBox ();
         cockroach.gltfScene.add(cube3);
         loadProjectionScreen();
@@ -967,6 +987,11 @@ function loadCockroach(){
         cockroach.gltfScene.parent = centralRoachCube;
 
 
+   
+        // spaceWitch.rightArm.mesh = spaceWitch.gltfScene.getObjectByName("right-arm-mesh001",true);
+        // spaceWitch.rightArm.materialMap = spaceWitch.rightArm.mesh.material.map;
+
+
     //    spaceWitch.hat.mesh = spaceWitch.gltfScene.getObjectByName("hat-2001_0",true);
     //    spaceWitch.hat.material = spaceWitch.hat.mesh.material;
 
@@ -1006,7 +1031,7 @@ function loadSpaceWitch(){
 
         // center.x += 10;
 
-        const witchLight = new THREE.PointLight( 0x03d3fc, 0.1, 10);
+        const witchLight = new THREE.PointLight( 0xff0554, 0.1, 10);
         witchLight.position.set(-3,5,0)
         spaceWitch.gltfScene.add(witchLight);
 
@@ -1409,26 +1434,32 @@ function spaceWitchSequenceTwo(){
     spaceWitch.speech[2].play();
     startCaptions('space-witch', 3);
 
-    setTimeout(function (){
+    setTimeout(function (){ 
+        cauldron.mesh.material =spaceWitch.hoverMaterial;
         currentTarget=cauldronCamera;
         currentFocalPoint=cauldronFocalPoint;
-        console.log(cauldron.video[5].name);
-        cauldron.mesh.material = cauldron.videoMaterial[5];
-        cauldron.video[5].play();
 
         setTimeout(function (){
-            alpha = 0;
-            currentTarget=spaceWitchCamera;
-            currentFocalPoint=spaceWitchFocalPoint; 
-
+           
+            console.log(cauldron.video[5].name);
+            cauldron.mesh.material = cauldron.videoMaterial[5];
+            cauldron.video[5].play();
 
             setTimeout(function (){
-                currentTarget=spaceWitchPointClose;
-                currentFocalPoint=spaceWitchFocalPointClose; 
-            },4000)
-        },17*1000)
+                alpha = 0;
+                currentTarget=spaceWitchCamera;
+                currentFocalPoint=spaceWitchFocalPoint; 
 
+
+                setTimeout(function (){
+                    currentTarget=spaceWitchPointClose;
+                    currentFocalPoint=spaceWitchFocalPointClose; 
+                },4000)
+            },15*1000)
+
+        },3*1000)
     },1*1000),
+
     
     spaceWitch.speech[2].source.onended = (event) => {
         console.log('space witch audio ended');
@@ -2097,9 +2128,9 @@ function init(){
         loader.setPath( 'texture/skybox/' );
     
         envMap = loader.load( [
-        'test-back.png', 'test-back.png',
-        'test-back.png', 'test-back.png',
-        'test-back.png', 'test-back.png'
+        'test-back.png', 'test-down.png',
+        'test-front.png', 'test-left.png',
+        'test-right.png', 'test-up.png'
         ] );
 
     }
@@ -2280,6 +2311,9 @@ function init(){
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+    cockroachCamera.aspect = window.innerWidth / window.innerHeight;
+    cockroachCamera.updateProjectionMatrix();
+
     renderer.setSize(window.innerWidth,window.innerHeight);
 
     };
@@ -2448,16 +2482,44 @@ const animate = function animate () {
     if(intersects.length > 0 && intersects[0].object.name=='space-witch-bounding-box' && (mouse.hoverTouch === null || mouse.hoverTouch)&& !currentlyPlaying){
         console.log('space-witch-hover');
 
-       
         setSpaceWitchHoverTexture();
 
 
-
     }
-    else{
-        
+    else{ 
         unsetSpaceWitchHoverTexture()
 
+    }
+
+
+
+    if(intersects.length > 0 && intersects[0].object.name=='cockroach-bounding-box' && (mouse.hoverTouch === null || mouse.hoverTouch)&& !currentlyPlaying){
+        console.log('cockroach hover');
+
+        cockroach.meshes.forEach(function(o){
+            o.material.map = spaceWitch.hoverTexture;
+            o.material.transparent=true;
+            o.material.emissiveIntensity = 0.02;
+            o.material.emissive.set(0xff0044);
+            o.material.roughness = 0;
+            o.material.metalness = 1;
+            // o.material.envMapIntensity = 1;
+
+
+        })
+
+
+    }
+    else{ 
+        cockroach.meshes.forEach(function(o){
+            o.material.map = o.materialMap;
+            o.material.opacity = o.opacity;
+            o.material.emissiveIntensity = 1;
+            o.material.emissive.set(0x000000);
+            o.material.roughness = o.roughness;
+            o.material.metalness = o.metalness;
+
+        })
 
     }
 
