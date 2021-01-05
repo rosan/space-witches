@@ -4,6 +4,8 @@ import {GLTFLoader} from 'https://unpkg.com/three@0.121.1//examples/jsm/loaders/
 
 import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 
+import {audioMuter} from './modules/audioMuter.js';
+
 let scene, renderer, videoCube, videoSphere, controls, starFieldMaterial3, destination, testcube, cameraTestCube;
 
 let centralCube, centralMouseCube, centralRoachCube, centralCauldronCube;
@@ -17,12 +19,8 @@ let camera, spaceWitchCamera, zombieMouseCamera, cockroachCamera, cauldronCamera
 let envMap;
 
 let currentlyPlaying;
-let allAudio = [];
-let volumeState = true;
 
 
-
-let n;
 let ramp;
 let rampVector; 
 
@@ -175,25 +173,6 @@ const clock = new THREE.Clock();
 let delta = 0;
 
 
-function muteGlobalAudio(){
-    const button = document.getElementById('mute-trigger');
-
-    if (volumeState){
-        for (let i = 0; i < allAudio.length; i++){
-            console.log(allAudio[i]);
-            allAudio[i].audio.setVolume(0);
-        } 
-        button.textContent = "unmute";
-        volumeState=false;
-
-    }else{
-        for (let i = 0; i < allAudio.length; i++){
-            allAudio[i].audio.setVolume(allAudio[i].originalVolume);
-        }  
-        button.textContent = 'mute';
-        volumeState=true;
-    }
-}
 
 
 function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
@@ -2096,10 +2075,8 @@ function init(){
         const initialVolume = 0.03;
         sound.setVolume( initialVolume );
         sound.play();
-        allAudio.push({
-            audio: sound,
-            originalVolume: initialVolume
-        })
+        audioMuter.addAudio(sound, initialVolume);
+
     });
         
 
@@ -2113,7 +2090,7 @@ function init(){
     label.innerText = "mute";
     document.body.appendChild(muteCheckBox); 
     document.body.appendChild(label); 
-    muteCheckBox.addEventListener('change', muteGlobalAudio, false);
+    muteCheckBox.addEventListener('change', function(){audioMuter.muteGlobalAudio()}, false);
 
 
     
@@ -2145,10 +2122,8 @@ function init(){
             cockroach.speech[i].setBuffer(buffer);
             cockroach.speech[i].setRefDistance(20);   
             const initialVolume = 1;
-            allAudio.push({
-                audio: cockroach.speech[i],
-                originalVolume: initialVolume
-            });
+            audioMuter.addAudio(cockroach.speech[i], initialVolume);
+
         });
         audioControls('cockroach', i+1 );
     }
@@ -2160,10 +2135,7 @@ function init(){
             zombieMouse.speech[i].setBuffer(buffer);
             zombieMouse.speech[i].setRefDistance(20);   
             const initialVolume = 1;
-            allAudio.push({
-                audio: zombieMouse.speech[i],
-                originalVolume: initialVolume
-            });
+            audioMuter.addAudio(zombieMouse.speech[i], initialVolume);
         });
         audioControls('zombie-mouse', i+1 );
     }
@@ -2174,10 +2146,7 @@ function init(){
             spaceWitch.speech[i].setBuffer(buffer);
             spaceWitch.speech[i].setRefDistance(20);   
             const initialVolume = 1;
-            allAudio.push({
-                audio: spaceWitch.speech[i],
-                originalVolume: initialVolume
-            });
+            audioMuter.addAudio(spaceWitch.speech[i], initialVolume);
         });
         audioControls('space-witch', i+1 );
     }
@@ -2287,10 +2256,7 @@ function init(){
         cockroach.sound.setLoop( true )
         const initialVolume = 0.3;
         cockroach.sound.setVolume(initialVolume);
-        allAudio.push({
-            audio: cockroach.sound,
-            originalVolume: initialVolume});
-
+        audioMuter.addAudio(cockroach.sound, initialVolume);
 
     });
 
@@ -2302,10 +2268,7 @@ function init(){
         zombieMouse.sound.setRefDistance(1);
         const initialVolume = 0.3;
         zombieMouse.sound.setVolume(0.3);
-        allAudio.push({
-            audio: zombieMouse.sound,
-            originalVolume: initialVolume
-        });
+        audioMuter.addAudio(zombieMouse.sound, initialVolume);
 
     });
 
