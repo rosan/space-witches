@@ -21,6 +21,11 @@ let allAudio = [];
 let volumeState = true;
 
 
+
+let n;
+let ramp;
+let rampVector; 
+
 let listener;
 
 let roachBabiesPoints;
@@ -80,6 +85,7 @@ let cauldron = {
     speech: null,
     video: [],
     videoMaterial: [],
+    normalsAnimation: null,
 }
 
 let spaceWitch= {
@@ -189,6 +195,46 @@ function muteGlobalAudio(){
     }
 }
 
+
+function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
+{	
+	// note: texture passed by reference, will be updated by the update function.
+		
+	this.tilesHorizontal = tilesHoriz;
+	this.tilesVertical = tilesVert;
+	// how many images does this spritesheet contain?
+	//  usually equals tilesHoriz * tilesVert, but not necessarily,
+	//  if there at blank tiles at the bottom of the spritesheet. 
+	this.numberOfTiles = numTiles;
+	texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
+	texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
+
+	// how long should each image be displayed?
+	this.tileDisplayDuration = tileDispDuration;
+
+	// how long has the current image been displayed?
+	this.currentDisplayTime = 0;
+
+	// which image is currently being displayed?
+	this.currentTile = 0;
+		
+	this.update = function( milliSec )
+	{
+		this.currentDisplayTime += milliSec;
+		while (this.currentDisplayTime > this.tileDisplayDuration)
+		{
+			this.currentDisplayTime -= this.tileDisplayDuration;
+			this.currentTile++;
+			if (this.currentTile == this.numberOfTiles)
+				this.currentTile = 0;
+			var currentColumn = this.currentTile % this.tilesHorizontal;
+			texture.offset.x = currentColumn / this.tilesHorizontal;
+			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
+			texture.offset.y = currentRow / this.tilesVertical;
+		}
+	};
+}	
+
 function makeVideos(){
     const video = document.createElement("video");
     video.id = 'video-1';
@@ -201,6 +247,20 @@ function makeVideos(){
         console.log('video has loaded');
     });
     video.load();
+
+    const normalsVideo = document.createElement("video");
+    normalsVideo.id = 'normals-vid';
+    normalsVideo.loop = true;
+    normalsVideo.className = 'invisible-video';
+    document.body.appendChild(normalsVideo);
+    const normalsVideoSource = document.createElement('source');
+    normalsVideoSource.setAttribute('src','texture/normal/normals-vid-intense-2.mp4');
+    normalsVideo.appendChild(normalsVideoSource);   
+    normalsVideo.addEventListener('loadeddata', function(){
+        console.log('video has loaded');
+    });
+    normalsVideo.load();
+    
     
     
     const cauldronDefaultVideo = document.createElement("video");
@@ -279,6 +339,17 @@ function makeVideos(){
     
 }
 
+// function makeNormalsGif(){
+//     const cauldronNormalsGif = new Image();
+//     cauldronNormalsGif.src = 'texture/normal/bubbling-normals.gif';
+//     cauldronNormalsGif.className = 'invisible-video';
+//     cauldronNormalsGif.id = 'cauldron-normals-gif';
+//     document.body.appendChild(cauldronNormalsGif);
+// }
+
+// makeNormalsGif()
+
+
 
 makeVideos();
 
@@ -349,44 +420,7 @@ function changeTarget(){
     
 }
 
-function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
-{	
-	// note: texture passed by reference, will be updated by the update function.
-		
-	this.tilesHorizontal = tilesHoriz;
-	this.tilesVertical = tilesVert;
-	// how many images does this spritesheet contain?
-	//  usually equals tilesHoriz * tilesVert, but not necessarily,
-	//  if there at blank tiles at the bottom of the spritesheet. 
-	this.numberOfTiles = numTiles;
-	texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
-	texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
 
-	// how long should each image be displayed?
-	this.tileDisplayDuration = tileDispDuration;
-
-	// how long has the current image been displayed?
-	this.currentDisplayTime = 0;
-
-	// which image is currently being displayed?
-	this.currentTile = 0;
-		
-	this.update = function( milliSec )
-	{
-		this.currentDisplayTime += milliSec;
-		while (this.currentDisplayTime > this.tileDisplayDuration)
-		{
-			this.currentDisplayTime -= this.tileDisplayDuration;
-			this.currentTile++;
-			if (this.currentTile == this.numberOfTiles)
-				this.currentTile = 0;
-			var currentColumn = this.currentTile % this.tilesHorizontal;
-			texture.offset.x = currentColumn / this.tilesHorizontal;
-			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
-			texture.offset.y = currentRow / this.tilesVertical;
-		}
-	};
-}	
 
 //roach group
 let roachTextureAnimation
@@ -611,38 +645,70 @@ function makeInitialCameraCube(){
 
 }
 
+
 function loadCauldronVideoTextures(){
 
-   for(let i=0; i<6; i++){
-    cauldron.video[i] = document.getElementById(`cauldron-vid-${i}`);
-    const videoTexture = new THREE.VideoTexture( cauldron.video[i] );
-    videoTexture.flipY = false;
-    videoTexture.format = THREE.RGBFormat;
-    cauldron.videoMaterial[i] = new THREE.MeshBasicMaterial({map: videoTexture});
-    cauldron.videoMaterial[i].name = `cauldronVideoMaterial-${i}`;
+    rampVector = new THREE.Vector2(1, 1);
+    
+    for (let i = 0; i < 6; i++) {
+        cauldron.video[i] = document.getElementById(`cauldron-vid-${i}`);
+        const videoTexture = new THREE.VideoTexture(cauldron.video[i]);
+        videoTexture.flipY = false;
+        videoTexture.format = THREE.RGBFormat;
+        cauldron.videoMaterial[i] = new THREE.MeshStandardMaterial({ map: videoTexture });
+        cauldron.videoMaterial[i].name = `cauldronVideoMaterial-${i}`;
 
-    console.log(cauldron.mesh.material);
-    console.log(cauldron.videoMaterial[i]);
 
-    if(i!=4){
-        cauldron.video[i].addEventListener('ended', function(){
-            console.log('cauldron video is done');
+        const normalsVid = document.getElementById('normals-vid');
+        const normalsTexture = new THREE.VideoTexture(normalsVid);
+        normalsVid.play();
+
+        cauldron.videoMaterial[i].envMap = envMap;
+
+        cauldron.videoMaterial[i].roughness = 1;
+        cauldron.videoMaterial[i].metalness = 0.3;
+        cauldron.videoMaterial[i].emissiveMap = videoTexture;
+        cauldron.videoMaterial[i].emissive = new THREE.Color(0xfa9898);
+
+    
+
+
+        console.log(cauldron.mesh.material);
+        console.log(cauldron.videoMaterial[i]);
+
+
+
+        if (i != 4) {
+
+            cauldron.videoMaterial[i].normalMap = normalsTexture;
+
+            cauldron.video[i].addEventListener('ended', function () {
+                console.log('cauldron video is done');
+                cauldron.mesh.material = cauldron.videoMaterial[4];
+                cauldron.video[4].play();
+                cauldron.video[4].loop = true;
+            });
+        }
+        else if (i == 4) {
+
             cauldron.mesh.material = cauldron.videoMaterial[4];
             cauldron.video[4].play();
             cauldron.video[4].loop = true;
-        });
-    }
-    else if (i==4){
-        cauldron.mesh.material = cauldron.videoMaterial[4];
-        cauldron.video[4].play();
-        cauldron.video[4].loop = true;
+
+        }
 
     }
-    
-   }
 
 
 }   
+
+
+function makeTestCube(){
+    const geometry = new THREE.BoxGeometry(10,10,10);
+    testcube = new THREE.Mesh(geometry);
+    console.log('test cube is made');
+
+}
 
 function loadZombieMouseVideoTextures(){
     for(let i=0; i<2; i++){
@@ -737,6 +803,7 @@ function loadCauldron (){
 
         loadCauldronVideoTextures();
         cauldronBoundingSphere();
+    
 
         let center = new THREE.Vector3(0,5,0);
 
@@ -1435,15 +1502,28 @@ function spaceWitchSequenceTwo(){
     startCaptions('space-witch', 3);
 
     setTimeout(function (){ 
-        cauldron.mesh.material =spaceWitch.hoverMaterial;
+        // cauldron.mesh.material =spaceWitch.hoverMaterial;
         currentTarget=cauldronCamera;
         currentFocalPoint=cauldronFocalPoint;
+
+        const normalsTexture = new THREE.TextureLoader().load('texture/normal/bubbling-normals-sheet.jpg');
+        cauldron.normalsAnimation = new TextureAnimator( normalsTexture, 24, 3, 72, 110 ); // texture, #horiz, #vert, #total, duration.
+        const material = new THREE.MeshStandardMaterial({map: normalsTexture});
+        cauldron.mesh.material = material;
+        cauldron.mesh.material.envMap = envMap;
+        cauldron.mesh.material.roughness = 0;
+        cauldron.mesh.material.metalness = 0.2;
 
         setTimeout(function (){
            
             console.log(cauldron.video[5].name);
-            cauldron.mesh.material = cauldron.videoMaterial[5];
+            cauldron.mesh.material = cauldron.videoMaterial[5];    
             cauldron.video[5].play();
+            cauldron.mesh.material.roughness = 1;
+            ramp = true;
+ 
+    
+
 
             setTimeout(function (){
                 alpha = 0;
@@ -1518,7 +1598,6 @@ function initializespaceWitchSequences(){
     spaceWitch.sequence[0] = spaceWitchSequenceOne;
     spaceWitch.sequence[1] = spaceWitchSequenceTwo;
     spaceWitch.sequence[2] = spaceWitchSequenceThree;
-
 
 }
 
@@ -2328,13 +2407,23 @@ function init(){
         this.object.position.z += 100;
     }
 
-    function makeTestCube(){
-        const geometry = new THREE.BoxGeometry(2,2,2);
-        testcube = new THREE.Mesh(geometry);
-        scene.add(testcube);
+
+
+};
+
+
+function normalEnvMapRamp(){
+    if (ramp && rampVector.x>0){
+        rampVector.x +=-0.2*delta;
+        rampVector.y +=-0.2*delta;
+        cauldron.mesh.material.normalScale = rampVector;
+        cauldron.mesh.material.roughness +=-0.2*delta;
     }
-    // makeTestCube()
- };
+    
+    else{
+        ramp = false;
+    }
+}
 
 let currentTarget;
 let currentCamera;
@@ -2379,8 +2468,7 @@ const animate = function animate () {
     cauldron.mixer.update (delta);
  
     // todo deltaSeconds
-  
-
+    normalEnvMapRamp();
     
     if (currentFocalPoint==spaceWitchFocalPoint){
         spaceWitch.gltfScene.rotation.x +=-0.1 * delta;
@@ -2633,6 +2721,9 @@ const animate = function animate () {
  
     roachTextureAnimation.update(1000 * delta);
     roachAlphaAnimation.update(1000 * delta);
+    if (cauldron.normalsAnimation){
+        cauldron.normalsAnimation.update(1000 * delta);
+    }
 
 
 
