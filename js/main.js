@@ -6,11 +6,16 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.1/examples/jsm/contro
 
 import {audioMuter} from './modules/audioMuter.js';
 
-let scene, renderer, videoCube, videoSphere, controls, starFieldMaterial3, destination, testcube, cameraTestCube;
+import {makeVideos} from './modules/makeVideos.js';
+
+import {cameraLerper} from './modules/cameraLerper.js';
+
+
+let scene, renderer, videoCube, videoSphere, controls, starFieldMaterial3,  testcube, cameraTestCube;
 
 let centralCube, centralMouseCube, centralRoachCube, centralCauldronCube;
 
-let cube1, cube2, cube3, sphere1, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, cauldronFocalPoint, initialDestination, quaternionDestination, initialCameraCube, porjectionScreenFocalPoint;
+let cube1, cube2, cube3, sphere1, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, cauldronFocalPoint, initialDestination, initialCameraCube, porjectionScreenFocalPoint;
 
 let spaceWitchFocalPointClose, spaceWitchPointClose;
 
@@ -35,16 +40,15 @@ let cockroach = {
     animations: null,
     materialMap: null,
     hoverMaterial: null,
-    hoverMaterial: null,
+    helmet: {
+        material: null,
+        mesh: null,
+    },
     mixer: null,
     sound: null,
     speech: [],
     body: null,
     array: null,
-    helmet: {
-        material: null,
-        mesh: null,
-    },
     meshes: [],
     clickAnimationOne: null,
     clickAnimationTwo: null,
@@ -214,121 +218,6 @@ function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDurat
 	};
 }	
 
-function makeVideos(){
-    const video = document.createElement("video");
-    video.id = 'video-1';
-    video.className = 'invisible-video';
-    document.body.appendChild(video);
-    const source = document.createElement('source');
-    source.setAttribute('src','texture/mouse-on-white-30fps.mp4');
-    video.appendChild(source);   
-    video.addEventListener('loadeddata', function(){
-        console.log('video has loaded');
-    });
-    video.load();
-
-    const normalsVideo = document.createElement("video");
-    normalsVideo.id = 'normals-vid';
-    normalsVideo.loop = true;
-    normalsVideo.className = 'invisible-video';
-    document.body.appendChild(normalsVideo);
-    const normalsVideoSource = document.createElement('source');
-    normalsVideoSource.setAttribute('src','texture/normal/normals-vid-intense-2.mp4');
-    normalsVideo.appendChild(normalsVideoSource);   
-    normalsVideo.addEventListener('loadeddata', function(){
-        console.log('video has loaded');
-    });
-    normalsVideo.load();
-    
-    
-    
-    const cauldronDefaultVideo = document.createElement("video");
-    cauldronDefaultVideo.id = 'cauldron-default-video';
-    cauldronDefaultVideo.className = 'invisible-video';
-    document.body.appendChild(cauldronDefaultVideo);
-    const cauldronDefaultVideoSource = document.createElement('source');
-    cauldronDefaultVideoSource.setAttribute('src','texture/mouse-on-white-30fps.mp4');
-    cauldronDefaultVideo.appendChild(cauldronDefaultVideoSource);     
-    cauldronDefaultVideo.load();
-
-
-    const spaceWitchSummonsVideo = document.createElement("video");
-    spaceWitchSummonsVideo.id = 'space-witch-summons-video';
-    const spaceWitchSummonsVideoSource = document.createElement('source');
-    spaceWitchSummonsVideoSource.setAttribute('src','texture/summons.mp4');
-    spaceWitchSummonsVideo.appendChild(spaceWitchSummonsVideoSource);   
-    
-    const div =  document.createElement('div');
-    div.id = 'space-witch-summons-video-div';
-    div.className = 'invisible-video';
-    div.appendChild(spaceWitchSummonsVideo);
-   
-
-    document.body.appendChild(div);
-
-    
-    spaceWitchSummonsVideo.load();
-
-    for (let i=0; i<6; i++){
-        const cockroachVidOne = document.createElement("video");
-        cockroachVidOne.id = `cockroach-vid-${i}`;
-        cockroachVidOne.className = 'invisible-video';
-        document.body.appendChild(cockroachVidOne);
-        const cockroachVidOneSource = document.createElement('source');
-        cockroachVidOneSource.setAttribute('src',`texture/cockroach/${i}.mp4`);
-        cockroachVidOne.appendChild(cockroachVidOneSource);     
-        cockroachVidOne.load();
-
-    }
-
-    
-    for (let i=0; i<6; i++){
-        const cauldronVid = document.createElement("video");
-        cauldronVid.id = `cauldron-vid-${i}`;
-        cauldronVid.className = 'invisible-video';
-        document.body.appendChild(cauldronVid);
-        const cauldronVidSource = document.createElement('source');
-        cauldronVidSource.setAttribute('src',`texture/cauldron/${i}.mp4`);
-        cauldronVid.appendChild(cauldronVidSource);     
-        cauldronVid.load();
-    }
-
-    for (let i=0; i<3; i++){
-        const spacWitchVid = document.createElement("video");
-        spacWitchVid.id = `space-witch-vid-${i}`;
-        spacWitchVid.className = 'invisible-video';
-        document.body.appendChild(spacWitchVid);
-        const spacWitchVidSource = document.createElement('source');
-        spacWitchVidSource.setAttribute('src',`texture/space-witch/${i}.mp4`);
-        spacWitchVid.appendChild(spacWitchVidSource);     
-        spacWitchVid.load();
-    }
-
-    for (let i=0; i<2; i++){
-        const mouseVid = document.createElement("video");
-        mouseVid.id = `mouse-vid-${i}`;
-        mouseVid.className = 'invisible-video';
-        document.body.appendChild(mouseVid);
-        const mouseVidSource = document.createElement('source');
-        mouseVidSource.setAttribute('src',`texture/mouse/${i}.mp4`);
-        mouseVid.appendChild(mouseVidSource);     
-        mouseVid.load();
-    }
-
-    
-}
-
-// function makeNormalsGif(){
-//     const cauldronNormalsGif = new Image();
-//     cauldronNormalsGif.src = 'texture/normal/bubbling-normals.gif';
-//     cauldronNormalsGif.className = 'invisible-video';
-//     cauldronNormalsGif.id = 'cauldron-normals-gif';
-//     document.body.appendChild(cauldronNormalsGif);
-// }
-
-// makeNormalsGif()
-
-
 
 makeVideos();
 
@@ -356,49 +245,7 @@ button.appendChild(text);
 button.addEventListener('click', runProgram, false);
 
 
-
-
 //changing orbital controls target
-let alpha=1;
-let alphaThreshold= 0.5;
-let postLerpAction; 
-function changeTarget(){
-    
-    alpha = alpha + 0.01*delta;
-
-    // if (alpha > 0.1){
-    //     currentTarget=null;
-    // }
-
-    if (alpha > 0.03){
-        if (postLerpAction){
-            postLerpAction();
-            postLerpAction = null;
-        }
-    }
-
-
-    if(alpha > alphaThreshold){
-        
-        // currentCamera=zombieMouseCamera;
-        alpha = 1;
-
-
-        // currentTarget=null;
-
-    }
-
-
-    camera.position.lerp(destination.clone(), alpha);
-
-    controls.target.lerp(focalPointDestination, alpha);
-
-    camera.quaternion.slerp(quaternionDestination, alpha);
-
-    // console.log(alpha)
-    
-}
-
 
 
 //roach group
@@ -1408,21 +1255,20 @@ function zombieMouseSequenceThree(){
     startCaptions('zombie-mouse',3);
     
     zombieMouse.speech[2].source.onended = (event) => {
-        currentFocalPoint = spaceWitchFocalPoint;
-        currentTarget = spaceWitchCamera;        
+        cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint, true);      
         console.log('zombieMouse audio ended');
         spaceWitch.speech[12].play();
         startCaptions('space-witch', 13);
+
         spaceWitch.speech[12].source.onended = (event) => {
             console.log('space witch audio ended');
             currentlyPlaying = false;
-            currentFocalPoint = zombieMouseFocalPoint;
-            currentTarget = zombieMouseCamera; 
+            cameraLerper.lerpTo(zombieMouseCamera, zombieMouseFocalPoint, true);      
             zombieMouse.sound.play();
-
         }
-    console.log(`zombiemouse state counter is ${zombieMouse.stateCounter}`);
-    zombieMouse.stateCounter = zombieMouse.stateCounter + 1;
+
+        console.log(`zombiemouse state counter is ${zombieMouse.stateCounter}`);
+        zombieMouse.stateCounter = zombieMouse.stateCounter + 1;
 
     }
 
@@ -1482,9 +1328,9 @@ function spaceWitchSequenceTwo(){
 
     setTimeout(function (){ 
         // cauldron.mesh.material =spaceWitch.hoverMaterial;
-        currentTarget=cauldronCamera;
-        currentFocalPoint=cauldronFocalPoint;
 
+        cameraLerper.lerpTo(cauldronCamera, cauldronFocalPoint);
+  
         const normalsTexture = new THREE.TextureLoader().load('texture/normal/bubbling-normals-sheet.jpg');
         cauldron.normalsAnimation = new TextureAnimator( normalsTexture, 24, 3, 72, 110 ); // texture, #horiz, #vert, #total, duration.
         const material = new THREE.MeshStandardMaterial({map: normalsTexture});
@@ -1501,18 +1347,13 @@ function spaceWitchSequenceTwo(){
             cauldron.mesh.material.roughness = 1;
             ramp = true;
  
-    
-
 
             setTimeout(function (){
-                alpha = 0;
-                currentTarget=spaceWitchCamera;
-                currentFocalPoint=spaceWitchFocalPoint; 
-
+                cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint);
 
                 setTimeout(function (){
-                    currentTarget=spaceWitchPointClose;
-                    currentFocalPoint=spaceWitchFocalPointClose; 
+                    cameraLerper.lerpTo(spaceWitchPointClose, spaceWitchFocalPointClose, true);
+
                 },4000)
             },15*1000)
 
@@ -1523,8 +1364,9 @@ function spaceWitchSequenceTwo(){
     spaceWitch.speech[2].source.onended = (event) => {
         console.log('space witch audio ended');
         currentlyPlaying = false;  
-        currentTarget=spaceWitchCamera;
-        currentFocalPoint=spaceWitchFocalPoint;       
+        
+        cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint);
+     
     }
 
     console.log(`space witch state counter is ${spaceWitch.stateCounter}`);
@@ -1563,8 +1405,8 @@ function spaceWitchSequenceThree(){
     spaceWitch.speech[3].source.onended = (event) => {
         console.log('space witch audio ended');
         currentlyPlaying = false;  
-        currentTarget=spaceWitchCamera;
-        currentFocalPoint=spaceWitchFocalPoint;       
+
+        cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint);     
     }
 
     console.log(`space witch state counter is ${spaceWitch.stateCounter}`);
@@ -1623,8 +1465,7 @@ function cockroachSequenceOne(){
 
         setTimeout(function (){
             currentCamera = camera;
-            currentFocalPoint = cockroachFocalPoint;
-            currentTarget = cockroachCamera; 
+            cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint);
 
         }, 5000)
 
@@ -1683,8 +1524,7 @@ function cockroachSequenceTwo(){
 
         setTimeout(function (){
             currentCamera = camera;
-            currentFocalPoint = cockroachFocalPoint;
-            currentTarget = cockroachCamera; 
+            cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint);
 
         }, 5000)
 
@@ -1744,8 +1584,7 @@ function cockroachSequenceThree(){
 
         setTimeout(function (){
             currentCamera = camera;
-            currentFocalPoint = cockroachFocalPoint;
-            currentTarget = cockroachCamera; 
+            cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint);
 
         }, 5000)
 
@@ -1796,12 +1635,10 @@ function cockroachSequenceFour(){
 
     setTimeout(function(){
         currentCamera = camera;
-        currentFocalPoint = spaceWitchFocalPointClose;
-        currentTarget = spaceWitchPointClose;        
+        cameraLerper.lerpTo(spaceWitchPointClose, spaceWitchFocalPointClose, true);   
         
         setTimeout(function (){
-            currentFocalPoint = cockroachFocalPoint;
-            currentTarget = cockroachCamera; 
+            cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint, true);
 
         }, 3000)
     }, 34*1000)
@@ -1866,9 +1703,7 @@ function cockroachSequenceFive(){
 
         setTimeout(function (){
             currentCamera = camera;
-            currentFocalPoint = cockroachFocalPoint;
-            currentTarget = cockroachCamera; 
-
+            cameraLerper.lerpTo(cockroachCamera,cockroachFocalPoint);
         }, 5000)
 
     }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+4000)
@@ -1926,8 +1761,7 @@ function cockroachSequenceSix(){
         console.log('timer')
         setTimeout(function (){
             currentCamera = camera;
-            currentFocalPoint = cockroachFocalPoint;
-            currentTarget = cockroachCamera; 
+            cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint);
 
         }, 5000)
 
@@ -2098,8 +1932,7 @@ function init(){
     controls = new OrbitControls(camera, renderer.domElement );
     controls.enableDamping = true;
     controls.dampingFactor = 0.02;
-    initialDestination = new THREE.Vector3(10,10,10);
-    destination =  initialDestination;   
+ 
     
     //Light
     const light = new THREE.PointLight(0xFFFFFF, 0.2, 500);
@@ -2388,10 +2221,8 @@ function normalEnvMapRamp(){
     }
 }
 
-let currentTarget;
+
 let currentCamera;
-let currentFocalPoint;
-let focalPointDestination;
 let doOnce = 1;
 let up = true;
 
@@ -2413,11 +2244,9 @@ const animate = function animate () {
         div.classList.remove('dream-video-div');
 
         console.log(camera.position);
-        currentTarget = initialCameraCube;
-        currentFocalPoint=centralCube;
+        cameraLerper.lerpTo(initialCameraCube, centralCube);
         zombieMouse.sound.play();
         cockroach.sound.play();
-        alpha = 0;
         doOnce = null;
 
     }
@@ -2433,24 +2262,24 @@ const animate = function animate () {
     // todo deltaSeconds
     normalEnvMapRamp();
     
-    if (currentFocalPoint==spaceWitchFocalPoint){
+    if (cameraLerper.currentFocalPoint==spaceWitchFocalPoint){
         spaceWitch.gltfScene.rotation.x +=-0.1 * delta;
         spaceWitch.gltfScene.rotation.y +=-0.04 * delta;
     }
     
-    if (currentFocalPoint==cockroachFocalPoint){
+    if (cameraLerper.currentFocalPoint==cockroachFocalPoint){
         cockroach.gltfScene.rotation.z += -0.01 * delta;
         cockroach.gltfScene.rotation.x += -0.1 * delta;
     }
 
-    if (currentFocalPoint==zombieMouseFocalPoint){
+    if (cameraLerper.currentFocalPoint==zombieMouseFocalPoint){
         zombieMouse.gltfScene.rotation.x += 0.2 * delta;
         zombieMouse.gltfScene.rotation.y += 0.1 * delta;
     }
 
 
 
-    if (currentFocalPoint!=cauldronFocalPoint){
+    if (cameraLerper.currentFocalPoint!=cauldronFocalPoint){
         if(up){
             cauldron.gltfScene.position.y+= Math.random()*0.05-0.3 * delta;
             if(cauldron.gltfScene.position.y>=2){
@@ -2515,14 +2344,14 @@ const animate = function animate () {
         console.log('Intersection click', intersects[0].object.name)
 
         // currentCamera = zombieMouseCamera;
-        currentFocalPoint = zombieMouseFocalPoint;
-        currentTarget = zombieMouseCamera;
-        alpha = 0;
 
         if (zombieMouse.stateCounter <(zombieMouse.sequence.length)){
-            postLerpAction = function(){
+            cameraLerper.lerpTo(zombieMouseCamera, zombieMouseFocalPoint, false, function(){
                 zombieMouse.sequence[zombieMouse.stateCounter]();
-            };  
+            });
+
+        }else{
+            cameraLerper.lerpTo(zombieMouseCamera, zombieMouseFocalPoint);
 
         }  
 
@@ -2579,15 +2408,15 @@ const animate = function animate () {
         
         console.log('space witch Intersection click', intersects[0].object.name)
         // currentCamera = spaceWitchCamera;
-        currentFocalPoint = spaceWitchFocalPoint;
-
-        currentTarget = spaceWitchCamera;
-        alpha = 0;
-
+ 
         if (spaceWitch.stateCounter <(spaceWitch.sequence.length)){
-            postLerpAction = function(){
+            cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint, false,function(){
                 spaceWitch.sequence[spaceWitch.stateCounter]();
-            };  
+            });
+
+              
+        }else{
+            cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint);
 
         }  
     }
@@ -2598,67 +2427,39 @@ const animate = function animate () {
         
         console.log('cockroach witch Intersection click', intersects[0].object.name)
 
-        // currentCamera = cockroachCamera;
-        currentFocalPoint = cockroachFocalPoint;
-        alpha = 0;
-        currentTarget = cockroachCamera;
-        // controls.enabled = false;
 
         
         if (cockroach.stateCounter <(cockroach.sequence.length)){
-            postLerpAction = function(){
+            cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint, false, function(){
                 cockroach.sequence[cockroach.stateCounter]();
-            };  
+            })  
 
-        } 
+        } else {
+            cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint);
+        }
 
     }
 
     if (mouse.click && intersects.length > 0 && intersects[0].object.name== 'cauldron-bounding-sphere'){
         console.log('cauldron click', intersects[0].object.name)
 
-        // currentCamera = cockroachCamera;
-        currentFocalPoint = cauldronFocalPoint;
-        currentTarget = initialCameraCube;
-        alpha = 0;
+        cameraLerper.lerpTo(initialCameraCube, cauldronFocalPoint);
     }
 
     if (mouse.click && intersects.length == 0){
-            
-        destination = initialDestination;
-        currentFocalPoint = null;
+        cameraLerper.exitLerp();            
     }
     else if (mouse.wheel){
             
-        destination = initialDestination;
-        currentFocalPoint = null;
+        cameraLerper.exitLerp();            
     }
     else if (mouse.down&& intersects.length == 0){
             
-        destination = initialDestination;
-        currentFocalPoint = null;
+        cameraLerper.exitLerp();            
     }
     
 
-    if (currentTarget && currentFocalPoint){
-
-        currentTarget.updateMatrixWorld();
-
-        let vector = new THREE.Vector3();
-        currentTarget.getWorldPosition(vector);
-        destination = vector;
-
-        let vector1 = new THREE.Vector3();
-        currentFocalPoint.getWorldPosition(vector1);
-        focalPointDestination = vector1;
-
-        let quaternion = new THREE.Quaternion();
-        currentTarget.getWorldQuaternion( quaternion);
-        quaternionDestination =  quaternion;
-        
-        changeTarget();
-    }
-
+    cameraLerper.update(delta, camera, controls);
 
 
     let vector1 = spaceWitchFocalPoint.geometry.vertices[0].clone();
