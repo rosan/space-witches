@@ -10,8 +10,13 @@ import {makeVideos} from './modules/makeVideos.js';
 
 import {cameraLerper} from './modules/cameraLerper.js';
 
+import {TextureAnimator} from './modules/textureAnimator.js';
 
-let scene, renderer, videoCube, videoSphere, controls, starFieldMaterial3,  testcube, cameraTestCube;
+import {makeStarField} from './modules/starfieldMaker.js';
+
+
+
+let scene, renderer, videoCube, videoSphere, controls,  testcube, cameraTestCube;
 
 let centralCube, centralMouseCube, centralRoachCube, centralCauldronCube;
 
@@ -176,49 +181,6 @@ const raycaster = new THREE.Raycaster();
 const clock = new THREE.Clock();
 let delta = 0;
 
-
-
-
-function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
-{	
-	// note: texture passed by reference, will be updated by the update function.
-		
-	this.tilesHorizontal = tilesHoriz;
-	this.tilesVertical = tilesVert;
-	// how many images does this spritesheet contain?
-	//  usually equals tilesHoriz * tilesVert, but not necessarily,
-	//  if there at blank tiles at the bottom of the spritesheet. 
-	this.numberOfTiles = numTiles;
-	texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
-	texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
-
-	// how long should each image be displayed?
-	this.tileDisplayDuration = tileDispDuration;
-
-	// how long has the current image been displayed?
-	this.currentDisplayTime = 0;
-
-	// which image is currently being displayed?
-	this.currentTile = 0;
-		
-	this.update = function( milliSec )
-	{
-		this.currentDisplayTime += milliSec;
-		while (this.currentDisplayTime > this.tileDisplayDuration)
-		{
-			this.currentDisplayTime -= this.tileDisplayDuration;
-			this.currentTile++;
-			if (this.currentTile == this.numberOfTiles)
-				this.currentTile = 0;
-			var currentColumn = this.currentTile % this.tilesHorizontal;
-			texture.offset.x = currentColumn / this.tilesHorizontal;
-			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
-			texture.offset.y = currentRow / this.tilesVertical;
-		}
-	};
-}	
-
-
 makeVideos();
 
 function makeLoadingScreen(){
@@ -243,10 +205,6 @@ let text = document.createTextNode("Start");
 button.appendChild(text);
 
 button.addEventListener('click', runProgram, false);
-
-
-//changing orbital controls target
-
 
 //roach group
 let roachTextureAnimation
@@ -283,74 +241,6 @@ function roachBabies(){
 
 }
 
-
-let starField1, starField2, starField3;
-
-//Starfield
-function starField(){
-    const starDisk = new THREE.TextureLoader().load( 'texture/disc.png' );
-    const starDiskAlpha = new THREE.TextureLoader().load( 'texture/disc-alpha.png' );
-
-
-    const starGeometry = new THREE.Geometry();
-    for (let i = 0; i < 2000; i++) {
-        const vertex = new THREE.Vector3();
-        vertex.x = Math.random()*1000-500;
-        vertex.y = Math.random()*1000-500;
-        vertex.z = Math.random()*1000-500;
-        starGeometry.vertices.push(vertex);
-    }
-    starField1 = new THREE.Points(starGeometry, new THREE.PointsMaterial({
-        // transparent: true,
-        // alphaMap: starDiskAlpha,
-        map: starDisk,
-        size: 0.5,
-        color: 0xffffff
-        })
-    ); 
-    scene.add(starField1);
-    starField1.position.z = 100;
-
-
-    const starGeometry2 = new THREE.Geometry();
-    for (let i = 0; i < 1500; i++) {
-        const vertex = new THREE.Vector3();
-        vertex.x = Math.random()*1000-800;
-        vertex.y = Math.random()*1000-800;
-        vertex.z = Math.random()*1000-800;
-        starGeometry2.vertices.push(vertex);
-    }
-    starField2 = new THREE.Points(starGeometry2, new THREE.PointsMaterial({
-        // transparent: true,
-        // alphaMap: starDisk,
-        map: starDisk,
-        size: 0.7,
-        color: 0xa8e6ff
-        })
-    ); 
-    scene.add(starField2);
-    starField2.position.z = 150;
-
-
-    const starGeometry3 = new THREE.Geometry();
-    for (let i = 0; i < 3000; i++) {
-        const vertex = new THREE.Vector3();
-        vertex.x = Math.random()*1000-500;
-        vertex.y = Math.random()*1000-500;
-        vertex.z = Math.random()*1000-200;
-        starGeometry3.vertices.push(vertex);
-    }
-    starFieldMaterial3 = new THREE.PointsMaterial({
-        // transparent: true,
-        // alphaMap: starDisk,
-        map: starDisk,
-        size: 0.4,
-        color: 0xffc47d
-        })
-    starField3 = new THREE.Points(starGeometry3, starFieldMaterial3);
-    scene.add(starField3);
-    starField3.position.z = 130;
-}
 
 //Bounding boxes
 
@@ -1423,6 +1313,7 @@ function initializespaceWitchSequences(){
 }
 
 function cockroachSequenceOne(){
+
     currentlyPlaying = true;
     cockroach.speech[cockroach.stateCounter].play();
   
@@ -1984,9 +1875,10 @@ function init(){
         audioControls('space-witch', i+1 );
     }
    
+    let starfieldArray = makeStarField();
 
+    scene.add(...starfieldArray);
 
-    starField();
 
     loadZombieMouse();
     
