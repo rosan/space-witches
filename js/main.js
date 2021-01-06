@@ -8,11 +8,14 @@ import {audioMuter} from './modules/audioMuter.js';
 
 import {makeVideos} from './modules/makeVideos.js';
 
+import {makeStarField} from './modules/starfieldMaker.js';
+
 import {cameraLerper} from './modules/cameraLerper.js';
 
 import {TextureAnimator} from './modules/textureAnimator.js';
 
-import {makeStarField} from './modules/starfieldMaker.js';
+import {audioSubtitleAdder} from './modules/audioSubtitleAdder.js';
+
 
 
 
@@ -108,44 +111,9 @@ let spaceWitch= {
     speech: null,
     body: null,
     array: null,
-    hat: {
-        material: null,
-        mesh: null,
-    },
-    cloak1: {
-        material: null,
-        mesh: null,
-    },
-    cloak2: {
-        material: null,
-        mesh: null,
-    },
-    top: {
-        material: null,
-        mesh: null,
-    },
-    legs1: {
-        material: null,
-        mesh: null,
-    },
-    legs2: {
-        material: null,
-        mesh: null,
-    },
-    legs3: {
-        material: null,
-        mesh: null,
-    },
+    meshes: [],
 
-    rightArm: {
-        material: null,
-        mesh: null,
-    },
-
-    leftArm: {
-        material: null,
-        mesh: null,
-    },
+    
     speech: [],
     stateCounter: 0,
     sequence: [],
@@ -873,37 +841,26 @@ function loadSpaceWitch(){
         spaceWitch.gltfScene.parent = centralCube;
 
 
-        spaceWitch.hat.mesh = spaceWitch.gltfScene.getObjectByName("hat-2001_0",true);
-        spaceWitch.hat.materialMap = spaceWitch.hat.mesh.material.map;
-        
+        spaceWitch.gltfScene.traverse(function(o){
+            if(o.type == "Mesh" || o.type == "SkinnedMesh" ){
+                if (o.material.name!="helmetlight-material.001"){
+                    o.material.envMap = envMap;
+                    spaceWitch.meshes.push({
+                        mesh: o,
+                        material: o.material,
+                        materialMap: o.material.map,
+                        opacity: o.material.opacity,
+                        emissive: o.material.emissive,
+                        emissiveIntensity: o.material.emissiveIntensity,
+                    })
+    
+                }
+                
+            }
+        })
 
-        console.log('space Witch scene is');
-        console.log(spaceWitch.gltfScene);
-        spaceWitch.legs1.mesh = spaceWitch.gltfScene.getObjectByName("Cylinder001_0",true);
-        spaceWitch.legs1.materialMap = spaceWitch.legs1.mesh.material.map;
-        
-
-        spaceWitch.legs2.mesh = spaceWitch.gltfScene.getObjectByName("Cylinder.001_1_1",true);
-        spaceWitch.legs2.materialMap = spaceWitch.legs2.mesh.material.map;
-
-        spaceWitch.legs3.mesh = spaceWitch.gltfScene.getObjectByName("Cylinder.001_2_2",true);
-        spaceWitch.legs3.materialMap = spaceWitch.legs3.mesh.material.map;
-
-        spaceWitch.cloak1.mesh = spaceWitch.gltfScene.getObjectByName("back-cloak",true);
-        spaceWitch.cloak1.materialMap = spaceWitch.cloak1.mesh.material.map;
-
-        spaceWitch.top.mesh = spaceWitch.gltfScene.getObjectByName("top",true);
-        spaceWitch.top.materialMap = spaceWitch.top.mesh.material.map;
-
-        spaceWitch.leftArm.mesh = spaceWitch.gltfScene.getObjectByName("left-arm",true);
-        spaceWitch.leftArm.materialMap = spaceWitch.leftArm.mesh.material.map;
-
-        spaceWitch.rightArm.mesh = spaceWitch.gltfScene.getObjectByName("right-arm-mesh001",true);
-        spaceWitch.rightArm.materialMap = spaceWitch.rightArm.mesh.material.map;
-
-
-
-
+        console.log('space witch meshes');
+        console.log(spaceWitch.meshes);
  
      }, undefined, function ( error ) {
  
@@ -982,114 +939,6 @@ function loadZombieMouse(){
         console.error( error );
 
     } );
-
-}
-
-function setSpaceWitchHoverTexture(){
-    spaceWitch.hat.mesh.material.map=spaceWitch.hoverTexture;
-    spaceWitch.hat.mesh.material.transparent=true;
-    spaceWitch.hat.mesh.material.opacity = 0.7;
-    spaceWitch.hat.mesh.material.emissiveIntensity = 0.02;
-    spaceWitch.hat.mesh.material.emissive.set(0x0d10ba);
-    
-    // spaceWitch.hat.mesh.material.roughness = 0.3;
-    // spaceWitch.hat.mesh.material.metalness = 0.5;
-
-
-    spaceWitch.legs1.mesh.material.map=spaceWitch.hoverTexture;
-    spaceWitch.legs1.mesh.material.transparent=true;
-    spaceWitch.legs1.mesh.material.opacity = 0.7;
-    spaceWitch.legs1.mesh.material.emissiveIntensity = 0.02;
-    spaceWitch.legs1.mesh.material.emissive.set(0x5639fa);
-
-    spaceWitch.legs2.mesh.material.map=spaceWitch.hoverTexture;
-    spaceWitch.legs2.mesh.material.transparent=true;
-    spaceWitch.legs2.mesh.material.opacity = 0.7;
-    spaceWitch.legs2.mesh.material.emissiveIntensity = 0.02;
-    spaceWitch.legs2.mesh.material.emissive.set(0x5639fa);
-
-    spaceWitch.legs3.mesh.material.map=spaceWitch.hoverTexture;
-    spaceWitch.legs3.mesh.material.transparent=true;
-    spaceWitch.legs3.mesh.material.opacity = 0.7;
-    spaceWitch.legs3.mesh.material.emissiveIntensity = 0.02;
-    spaceWitch.legs3.mesh.material.emissive.set(0x5639fa);
-
-    spaceWitch.top.mesh.material.map=spaceWitch.hoverTexture;
-    spaceWitch.top.mesh.material.transparent=true;
-    spaceWitch.top.mesh.material.opacity = 0.7;
-    spaceWitch.top.mesh.material.emissiveIntensity = 0.1;
-    spaceWitch.top.mesh.material.emissive.set(0x0d10ba);
-
-    spaceWitch.rightArm.mesh.material.map=spaceWitch.hoverTexture;
-    spaceWitch.rightArm.mesh.material.transparent=true;
-    spaceWitch.rightArm.mesh.material.opacity = 0.7;
-    spaceWitch.rightArm.mesh.material.emissiveIntensity = 0.02;
-    spaceWitch.rightArm.mesh.material.emissive.set(0x0d10ba);
-
-    spaceWitch.leftArm.mesh.material.map=spaceWitch.hoverTexture;
-    spaceWitch.leftArm.mesh.material.transparent=true;
-    spaceWitch.leftArm.mesh.material.opacity = 0.7;
-    spaceWitch.leftArm.mesh.material.emissiveIntensity = 0.02;
-    spaceWitch.leftArm.mesh.material.emissive.set(0x0d10ba);
-
-    spaceWitch.cloak1.mesh.material.map=spaceWitch.hoverTexture;
-    spaceWitch.cloak1.mesh.material.transparent=true;
-    spaceWitch.cloak1.mesh.material.opacity = 0.7;
-    spaceWitch.cloak1.mesh.material.emissiveIntensity = 0.03;
-    spaceWitch.cloak1.mesh.material.emissive.set(0x6b25f7);
-}
-
-function unsetSpaceWitchHoverTexture(){
-    spaceWitch.hat.mesh.material.map = spaceWitch.hat.materialMap;
-    spaceWitch.hat.mesh.material.transparent=false;
-    spaceWitch.hat.mesh.material.opacity = 1;
-    spaceWitch.hat.mesh.material.emissiveIntensity = 1;
-    spaceWitch.hat.mesh.material.emissive.set(0x000000);
-
-    // spaceWitch.hat.mesh.material.roughness = 1;
-    // spaceWitch.hat.mesh.material.metalness = 0;
-
-    spaceWitch.legs1.mesh.material.map=spaceWitch.legs1.materialMap;
-    spaceWitch.legs1.mesh.material.transparent=false;
-    spaceWitch.legs1.mesh.material.opacity = 1;
-    spaceWitch.legs1.mesh.material.emissiveIntensity = 1;
-    spaceWitch.legs1.mesh.material.emissive.set(0x000000);
-
-    spaceWitch.legs2.mesh.material.map=spaceWitch.legs2.materialMap;
-    spaceWitch.legs2.mesh.material.transparent=false;
-    spaceWitch.legs2.mesh.material.opacity = 1;
-    spaceWitch.legs2.mesh.material.emissiveIntensity = 1;
-    spaceWitch.legs2.mesh.material.emissive.set(0x000000);
-
-    spaceWitch.legs3.mesh.material.map=spaceWitch.legs3.materialMap;
-    spaceWitch.legs3.mesh.material.transparent=false;
-    spaceWitch.legs3.mesh.material.opacity = 1;
-    spaceWitch.legs3.mesh.material.emissiveIntensity = 1;
-    spaceWitch.legs3.mesh.material.emissive.set(0x000000);
-
-    spaceWitch.top.mesh.material.map=spaceWitch.top.materialMap;
-    spaceWitch.top.mesh.material.transparent=false;
-    spaceWitch.top.mesh.material.opacity = 1;
-    spaceWitch.top.mesh.material.emissiveIntensity = 1;
-    spaceWitch.top.mesh.material.emissive.set(0x000000);
-
-    spaceWitch.rightArm.mesh.material.map=spaceWitch.top.materialMap;
-    spaceWitch.rightArm.mesh.material.transparent=false;
-    spaceWitch.rightArm.mesh.material.opacity = 1;
-    spaceWitch.rightArm.mesh.material.emissiveIntensity = 1;
-    spaceWitch.rightArm.mesh.material.emissive.set(0x000000);
-
-    spaceWitch.leftArm.mesh.material.map=spaceWitch.top.materialMap;
-    spaceWitch.leftArm.mesh.material.transparent=false;
-    spaceWitch.leftArm.mesh.material.opacity = 1;
-    spaceWitch.leftArm.mesh.material.emissiveIntensity = 1;
-    spaceWitch.leftArm.mesh.material.emissive.set(0x000000);
-
-    spaceWitch.cloak1.mesh.material.map=spaceWitch.cloak1.materialMap;
-    spaceWitch.cloak1.mesh.material.transparent=false;
-    spaceWitch.cloak1.mesh.material.opacity = 1;
-    spaceWitch.cloak1.mesh.material.emissiveIntensity = 1;
-    spaceWitch.cloak1.mesh.material.emissive.set(0x000000);
 
 }
 
@@ -1700,47 +1549,6 @@ function startCaptions(directory, audioNumber){
 }
 
 
-//plays at same time as on click audio to facilitate captions (AudioListerner does not have captions support)
-function audioControls (directory, audioNumber){
-    const audioControls = document.createElement("audio");
-    // audioControls.setAttribute('controls', true);
-    audioControls.id = `${directory}-${audioNumber}`;
-    document.body.appendChild(audioControls);
-    audioControls.muted = true;
-
-    const source = document.createElement('source');
-    source.setAttribute('src', `Audio/${directory}/${audioNumber}.mp3`)
-    source.setAttribute('type', 'audio/mpeg');
-    audioControls.appendChild(source);
-
-    const source2 = document.createElement('source');
-    source2.setAttribute('src', `Audio/${directory}/${audioNumber}.ogg`)
-    source2.setAttribute('type', 'audio/ogg');
-    audioControls.appendChild(source2);
-
-    const track = document.createElement("track");
-    track.setAttribute('kind', 'captions');
-    track.setAttribute('src', `captions/${directory}/${audioNumber}.vtt`);
-    track.setAttribute('label', 'English');
-    track.setAttribute('default', 'true');
-    audioControls.appendChild(track);
-
-    audioControls.textTracks[0].addEventListener('cuechange', function(){
-        console.log(directory);
-        console.log(audioNumber);
-        if (this.activeCues.length>0){
-            document.getElementById('caption-span').innerText = this.activeCues[0].text;
-            console.log(this.activeCues[0].text);
-        }
-        else {
-            document.getElementById('caption-span').innerText = ' ';
-            console.log('silence');
-        }
-
-    },false)
-
-}
-
 
 
 function init(){
@@ -1849,7 +1657,7 @@ function init(){
             audioMuter.addAudio(cockroach.speech[i], initialVolume);
 
         });
-        audioControls('cockroach', i+1 );
+        audioSubtitleAdder('cockroach', i+1 );
     }
 
 
@@ -1861,7 +1669,7 @@ function init(){
             const initialVolume = 1;
             audioMuter.addAudio(zombieMouse.speech[i], initialVolume);
         });
-        audioControls('zombie-mouse', i+1 );
+        audioSubtitleAdder('zombie-mouse', i+1 );
     }
 
     for (let i = 0; i<14; i++){
@@ -1872,7 +1680,7 @@ function init(){
             const initialVolume = 1;
             audioMuter.addAudio(spaceWitch.speech[i], initialVolume);
         });
-        audioControls('space-witch', i+1 );
+        audioSubtitleAdder('space-witch', i+1 );
     }
    
     let starfieldArray = makeStarField();
@@ -2071,8 +1879,6 @@ function init(){
     // controls.domElement.addEventListener('pointerdown', onMouseDown, false);
 
 
-
-
     //resize canvas with window
     function onWindowResize(){
 
@@ -2120,7 +1926,6 @@ let up = true;
 
 
 
-
 const animate = function animate () { 
     requestAnimationFrame(animate);
 
@@ -2142,8 +1947,6 @@ const animate = function animate () {
         doOnce = null;
 
     }
-
-
 
     delta = clock.getDelta();
     zombieMouse.mixer.update (delta);
@@ -2168,7 +1971,6 @@ const animate = function animate () {
         zombieMouse.gltfScene.rotation.x += 0.2 * delta;
         zombieMouse.gltfScene.rotation.y += 0.1 * delta;
     }
-
 
 
     if (cameraLerper.currentFocalPoint!=cauldronFocalPoint){
@@ -2253,15 +2055,42 @@ const animate = function animate () {
 
     if(intersects.length > 0 && intersects[0].object.name=='space-witch-bounding-box' && (mouse.hoverTouch === null || mouse.hoverTouch)&& !currentlyPlaying){
         console.log('space-witch-hover');
+        // setSpaceWitchHoverTexture();
+        
+        spaceWitch.meshes.forEach(function(o){
+            o.material.map = spaceWitch.hoverTexture;
+            o.material.transparent=true;
+            o.material.opacity = 0.7;
+            o.material.emissiveIntensity = 0.02;
+            if (o.material.emissive){
+                o.material.emissive.set(0x0d10ba);
 
-        setSpaceWitchHoverTexture();
+            }
+
+            // o.material.envMapIntensity = 1;
+
+
+        })
 
 
     }
-    else{ 
-        unsetSpaceWitchHoverTexture()
+    else { 
+        spaceWitch.meshes.forEach(function(o){
+            o.material.map = o.materialMap;
+            o.material.opacity = o.opacity;
+            o.material.emissiveIntensity = o.emissiveIntensity;
+            if (o.material.emissive){
+                o.material.emissive.set(0x000000);
+            }   
+
+        })
+
 
     }
+    // else{ 
+    //     unsetSpaceWitchHoverTexture()
+
+    // }
 
 
 
