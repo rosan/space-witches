@@ -16,6 +16,7 @@ import {TextureAnimator} from './modules/textureAnimator.js';
 
 import {audioSubtitleAdder} from './modules/audioSubtitleAdder.js';
 
+import {makeRoachBabies} from './modules/roachBabiesMaker.js';
 
 
 
@@ -23,7 +24,7 @@ let scene, renderer, videoCube, videoSphere, controls,  testcube, cameraTestCube
 
 let centralCube, centralMouseCube, centralRoachCube, centralCauldronCube;
 
-let cube1, cube2, cube3, sphere1, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, cauldronFocalPoint, initialDestination, initialCameraCube, porjectionScreenFocalPoint;
+let cube1, cube2, cube3, sphere1, spaceWitchFocalPoint, cockroachFocalPoint, zombieMouseFocalPoint, cauldronFocalPoint, initialCameraCube, porjectionScreenFocalPoint;
 
 let spaceWitchFocalPointClose, spaceWitchPointClose;
 
@@ -34,12 +35,8 @@ let envMap;
 let currentlyPlaying;
 
 
-let ramp;
-let rampVector; 
-
 let listener;
 
-let roachBabiesPoints;
 
 let cockroach = {
     gltfScene: null,
@@ -48,21 +45,35 @@ let cockroach = {
     animations: null,
     materialMap: null,
     hoverMaterial: null,
-    helmet: {
-        material: null,
-        mesh: null,
-    },
     mixer: null,
     sound: null,
     speech: [],
     body: null,
-    array: null,
     meshes: [],
     clickAnimationOne: null,
     clickAnimationTwo: null,
     stateCounter: 0,
     sequence: [],
 
+}
+
+let spaceWitch= {
+    gltfScene: null,
+    boundingBox: null,
+    focalPoint: null,
+    mesh: null,
+    animations: null,
+    materialMap: null,
+    hoverMaterial: null,
+    mixer: null,
+    sound: null,
+    speech: null,
+    body: null,
+    array: null,
+    meshes: [], 
+    speech: [],
+    stateCounter: 0,
+    sequence: [],
 }
 
 let zombieMouse = {
@@ -96,28 +107,62 @@ let cauldron = {
     video: [],
     videoMaterial: [],
     normalsAnimation: null,
-}
-
-let spaceWitch= {
-    gltfScene: null,
-    boundingBox: null,
-    focalPoint: null,
-    mesh: null,
-    animations: null,
-    materialMap: null,
-    hoverMaterial: null,
-    mixer: null,
-    sound: null,
-    speech: null,
-    body: null,
-    array: null,
-    meshes: [],
-
+    normalRamp: null,
+    normalRampVector: new THREE.Vector2(1, 1),
+    loadCauldronVideoTextures: function(envMap){
+  
+        for (let i = 0; i < 6; i++) {
+            this.video[i] = document.getElementById(`cauldron-vid-${i}`);
+            const videoTexture = new THREE.VideoTexture(this.video[i]);
+            videoTexture.flipY = false;
+            videoTexture.format = THREE.RGBFormat;
+            this.videoMaterial[i] = new THREE.MeshStandardMaterial({ map: videoTexture });
+            this.videoMaterial[i].name = `cauldronVideoMaterial-${i}`;
     
-    speech: [],
-    stateCounter: 0,
-    sequence: [],
+    
+            const normalsVid = document.getElementById('normals-vid');
+            const normalsTexture = new THREE.VideoTexture(normalsVid);
+            normalsVid.play();
+    
+            this.videoMaterial[i].envMap = envMap;
+    
+            this.videoMaterial[i].roughness = 1;
+            this.videoMaterial[i].metalness = 0.3;
+            this.videoMaterial[i].emissiveMap = videoTexture;
+            this.videoMaterial[i].emissive = new THREE.Color(0xfa9898);
+    
+    
+            console.log(this.mesh.material);
+            console.log(this.videoMaterial[i]);
+    
+    
+    
+            if (i != 4) {
+    
+                this.videoMaterial[i].normalMap = normalsTexture;
+    
+                this.video[i].addEventListener('ended', function () {
+                    console.log('cauldron video is done');
+                    this.mesh.material = cauldron.videoMaterial[4];
+                    this.video[4].play();
+                    this.video[4].loop = true;
+                });
+            }
+            else if (i == 4) {
+    
+                this.mesh.material = this.videoMaterial[4];
+                this.video[4].play();
+                this.video[4].loop = true;
+    
+            }
+    
+        }
+    
+    
+    }   
 }
+
+
 
 let mouse = {
     position: new THREE.Vector2(1,1),
@@ -175,40 +220,8 @@ button.appendChild(text);
 button.addEventListener('click', runProgram, false);
 
 //roach group
-let roachTextureAnimation
-let roachAlphaAnimation
-function roachBabies(){
-    const roachTexture = new THREE.TextureLoader().load('texture/anim-cockroach.png')
-    const roachAlphaMap = new THREE.TextureLoader().load('texture/anim-cockroach-alpha-map.png')
-    roachTextureAnimation = new TextureAnimator( roachTexture, 12, 1, 12, 110 ); // texture, #horiz, #vert, #total, duration.
-    roachAlphaAnimation = new TextureAnimator( roachAlphaMap, 12, 1, 12, 110 ); // texture, #horiz, #vert, #total, duration.
 
-
-    const roachGeometry = new THREE.SphereGeometry(8,5,6);
-    for (let i = 0; i < 30; i++) {
-        const vertex = new THREE.Vector3();
-        // vertex.x = Math.random()*5-50;
-        // vertex.y = Math.random()*5-50;
-        // vertex.z = Math.random()*5-50;
-        roachGeometry.vertices.push(vertex);
-    }
-    const material = new THREE.PointsMaterial({
-        transparent: true,
-        alphaMap: roachAlphaMap,
-        map: roachTexture,
-        size: 2.5,
-        color: 0xffffff
-        })
-    material.side =  THREE.BackSide;
-
-    roachBabiesPoints = new THREE.Points(roachGeometry, material);
-    // cockroach.gltfScene.add(roachBabies);   
-    roachBabiesPoints.position.x = 1; 
-    roachBabiesPoints.position.y = 4;
-    roachBabiesPoints.position.z = -5; 
-
-}
-
+const roachBabies= makeRoachBabies();
 
 //Bounding boxes
 
@@ -330,61 +343,7 @@ function makeInitialCameraCube(){
 }
 
 
-function loadCauldronVideoTextures(){
 
-    rampVector = new THREE.Vector2(1, 1);
-    
-    for (let i = 0; i < 6; i++) {
-        cauldron.video[i] = document.getElementById(`cauldron-vid-${i}`);
-        const videoTexture = new THREE.VideoTexture(cauldron.video[i]);
-        videoTexture.flipY = false;
-        videoTexture.format = THREE.RGBFormat;
-        cauldron.videoMaterial[i] = new THREE.MeshStandardMaterial({ map: videoTexture });
-        cauldron.videoMaterial[i].name = `cauldronVideoMaterial-${i}`;
-
-
-        const normalsVid = document.getElementById('normals-vid');
-        const normalsTexture = new THREE.VideoTexture(normalsVid);
-        normalsVid.play();
-
-        cauldron.videoMaterial[i].envMap = envMap;
-
-        cauldron.videoMaterial[i].roughness = 1;
-        cauldron.videoMaterial[i].metalness = 0.3;
-        cauldron.videoMaterial[i].emissiveMap = videoTexture;
-        cauldron.videoMaterial[i].emissive = new THREE.Color(0xfa9898);
-
-    
-
-
-        console.log(cauldron.mesh.material);
-        console.log(cauldron.videoMaterial[i]);
-
-
-
-        if (i != 4) {
-
-            cauldron.videoMaterial[i].normalMap = normalsTexture;
-
-            cauldron.video[i].addEventListener('ended', function () {
-                console.log('cauldron video is done');
-                cauldron.mesh.material = cauldron.videoMaterial[4];
-                cauldron.video[4].play();
-                cauldron.video[4].loop = true;
-            });
-        }
-        else if (i == 4) {
-
-            cauldron.mesh.material = cauldron.videoMaterial[4];
-            cauldron.video[4].play();
-            cauldron.video[4].loop = true;
-
-        }
-
-    }
-
-
-}   
 
 
 function makeTestCube(){
@@ -450,13 +409,6 @@ function loadProjectionScreen (){
         
 
 
-        // const box = new THREE.Mesh(geometry)
-        // box.position.set( 3, 3, 0);
-        // projectionScreen.gltfScene.add(box);
-
-        
-
-
         cockroach.gltfScene.add(projectionScreen.gltfScene);
 
 
@@ -485,7 +437,7 @@ function loadCauldron (){
         cauldron.material = cauldron.mesh.material;
         cauldron.originalMaterial = cauldron.mesh.material;
 
-        loadCauldronVideoTextures();
+        cauldron.loadCauldronVideoTextures(envMap);
         cauldronBoundingSphere();
     
 
@@ -606,6 +558,7 @@ function loadCockroach(){
         gltf.scene.scale.set(1.5, 1.5, 1.5);
 
 
+        // cockroach.gltfScene.add(roachBabies.points);  
 
         cockroach.gltfScene.name = 'Cockroach Scene';
 
@@ -639,7 +592,6 @@ function loadCockroach(){
         cockroach.gltfScene.add(cube3);
         loadProjectionScreen();
         
-        roachBabies();
 
         const cockroachLight = new THREE.PointLight( 0xff0000, 0.1, 100 );
         cockroachLight.position.set( 2, 2, 2 );
@@ -942,8 +894,8 @@ function loadZombieMouse(){
 
 }
 
-function zombieMouseSequenceOne(){
-    currentlyPlaying = true;
+
+function zombieMouseSequenceOne(done){
     zombieMouse.sound.stop();
 
     zombieMouse.gltfScene.add(videoSphere);  
@@ -961,7 +913,7 @@ function zombieMouseSequenceOne(){
     zombieMouse.speech[0].source.onended = (event) => {
         zombieMouse.gltfScene.remove(videoSphere);
         zombieMouse.sound.play();
-        currentlyPlaying = false;
+        done();
         console.log('zombieMouse audio ended');
     }
     console.log(`zombiemouse state counter is ${zombieMouse.stateCounter}`);
@@ -969,8 +921,7 @@ function zombieMouseSequenceOne(){
 }
 
 
-function zombieMouseSequenceTwo(){
-    currentlyPlaying = true;
+function zombieMouseSequenceTwo(done){
     zombieMouse.sound.stop();
 
     zombieMouse.speech[1].play();
@@ -978,14 +929,14 @@ function zombieMouseSequenceTwo(){
     
     zombieMouse.speech[1].source.onended = (event) => {
         zombieMouse.sound.play();
-        currentlyPlaying = false;
+        done();
         console.log('zombieMouse audio ended');
     }
     console.log(`zombiemouse state counter is ${zombieMouse.stateCounter}`);
     zombieMouse.stateCounter = zombieMouse.stateCounter + 1;
 }
 
-function zombieMouseSequenceThree(){
+function zombieMouseSequenceThree(done){
     
     currentlyPlaying = true;
     zombieMouse.sound.stop();
@@ -1001,7 +952,7 @@ function zombieMouseSequenceThree(){
 
         spaceWitch.speech[12].source.onended = (event) => {
             console.log('space witch audio ended');
-            currentlyPlaying = false;
+            done();
             cameraLerper.lerpTo(zombieMouseCamera, zombieMouseFocalPoint, true);      
             zombieMouse.sound.play();
         }
@@ -1021,7 +972,7 @@ function initializeZombieMouseSequences(){
 }
 
 
-function spaceWitchSequenceOne(){
+function spaceWitchSequenceOne(done){
     currentlyPlaying = true;
     // spaceWitch.sound.stop();
 
@@ -1047,7 +998,7 @@ function spaceWitchSequenceOne(){
             spaceWitch.speech[1].source.onended= (event) => {
                 console.log('space witch audio ended');
                 // spaceWitch.sound.play();
-                currentlyPlaying = false;
+                done();
             }
 
         }
@@ -1058,7 +1009,7 @@ function spaceWitchSequenceOne(){
 
 }
 
-function spaceWitchSequenceTwo(){
+function spaceWitchSequenceTwo(done){
     currentlyPlaying = true;
     // spaceWitch.sound.stop();
 
@@ -1084,7 +1035,7 @@ function spaceWitchSequenceTwo(){
             cauldron.mesh.material = cauldron.videoMaterial[5];    
             cauldron.video[5].play();
             cauldron.mesh.material.roughness = 1;
-            ramp = true;
+            cauldron.normalRamp = true;
  
 
             setTimeout(function (){
@@ -1102,7 +1053,7 @@ function spaceWitchSequenceTwo(){
     
     spaceWitch.speech[2].source.onended = (event) => {
         console.log('space witch audio ended');
-        currentlyPlaying = false;  
+        done();
         
         cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint);
      
@@ -1113,8 +1064,7 @@ function spaceWitchSequenceTwo(){
 
 }
 
-function spaceWitchSequenceThree(){
-    currentlyPlaying = true;
+function spaceWitchSequenceThree(done){
     // spaceWitch.sound.stop();
 
     spaceWitch.speech[3].play();
@@ -1143,7 +1093,7 @@ function spaceWitchSequenceThree(){
     
     spaceWitch.speech[3].source.onended = (event) => {
         console.log('space witch audio ended');
-        currentlyPlaying = false;  
+        done();
 
         cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint);     
     }
@@ -1161,9 +1111,8 @@ function initializespaceWitchSequences(){
 
 }
 
-function cockroachSequenceOne(){
+function cockroachSequenceOne(done){
 
-    currentlyPlaying = true;
     cockroach.speech[cockroach.stateCounter].play();
   
     console.log(projectionScreen.mesh.material);
@@ -1215,14 +1164,13 @@ function cockroachSequenceOne(){
 
     cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
         cockroach.sound.play();
-        currentlyPlaying = false;
+        done();
         console.log('cockroach audio ended');
     }
     cockroach.stateCounter = cockroach.stateCounter + 1;
 
 }
-function cockroachSequenceTwo(){
-    currentlyPlaying = true;
+function cockroachSequenceTwo(done){
     cockroach.speech[cockroach.stateCounter].play();
   
     console.log(projectionScreen.mesh.material);
@@ -1274,15 +1222,14 @@ function cockroachSequenceTwo(){
 
     cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
         cockroach.sound.play();
-        currentlyPlaying = false;
+        done();
         console.log('cockroach audio ended');
     }
     cockroach.stateCounter = cockroach.stateCounter + 1;
 
 }
 
-function cockroachSequenceThree(){
-    currentlyPlaying = true;
+function cockroachSequenceThree(done){
     cockroach.speech[cockroach.stateCounter].play();
   
     console.log(projectionScreen.mesh.material);
@@ -1334,15 +1281,14 @@ function cockroachSequenceThree(){
 
     cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
         cockroach.sound.play();
-        currentlyPlaying = false;
+        done();
         console.log('cockroach audio ended');
     }
     cockroach.stateCounter = cockroach.stateCounter + 1;
 
 }
 
-function cockroachSequenceFour(){
-    currentlyPlaying = true;
+function cockroachSequenceFour(done){
     cockroach.speech[cockroach.stateCounter].play();
   
     console.log(projectionScreen.mesh.material);
@@ -1393,15 +1339,14 @@ function cockroachSequenceFour(){
 
     cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
         cockroach.sound.play();
-        currentlyPlaying = false;
+        done();
         console.log('cockroach audio ended');
     }
     cockroach.stateCounter = cockroach.stateCounter + 1;
 }
 
-function cockroachSequenceFive(){
+function cockroachSequenceFive(done){
 
-    currentlyPlaying = true;
     cockroach.speech[cockroach.stateCounter].play();
   
     console.log(projectionScreen.mesh.material);
@@ -1452,15 +1397,14 @@ function cockroachSequenceFive(){
 
     cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
         cockroach.sound.play();
-        currentlyPlaying = false;
+        done();
         console.log('cockroach audio ended');
     }
     cockroach.stateCounter = cockroach.stateCounter + 1;
 
 }
 
-function cockroachSequenceSix(){
-    currentlyPlaying = true;
+function cockroachSequenceSix(done){
     cockroach.speech[cockroach.stateCounter].play();
   
    
@@ -1480,9 +1424,8 @@ function cockroachSequenceSix(){
 
     setTimeout(function (){
 
-        cockroach.gltfScene.add(roachBabiesPoints);
+        cockroach.gltfScene.add(roachBabies.points);
 
-        
     }, 12*1000)
 
     startCaptions('cockroach', cockroach.stateCounter+1);
@@ -1512,7 +1455,7 @@ function cockroachSequenceSix(){
 
     cockroach.speech[cockroach.stateCounter].source.onended = (event) => {
         cockroach.sound.play();
-        currentlyPlaying = false;
+        done();
         console.log('cockroach audio ended');
     }
     cockroach.stateCounter = cockroach.stateCounter + 1;
@@ -1547,8 +1490,6 @@ function startCaptions(directory, audioNumber){
         div.className = 'invisible';
     }
 }
-
-
 
 
 function init(){
@@ -1907,15 +1848,15 @@ function init(){
 
 
 function normalEnvMapRamp(){
-    if (ramp && rampVector.x>0){
-        rampVector.x +=-0.2*delta;
-        rampVector.y +=-0.2*delta;
-        cauldron.mesh.material.normalScale = rampVector;
+    if (cauldron.normalRamp && cauldron.normalRampVector.x>0){
+        cauldron.normalRampVector.x +=-0.2*delta;
+        cauldron.normalRampVector.y +=-0.2*delta;
+        cauldron.mesh.material.normalScale = cauldron.normalRampVector;
         cauldron.mesh.material.roughness +=-0.2*delta;
     }
     
     else{
-        ramp = false;
+        cauldron.normalRamp = false;
     }
 }
 
@@ -2041,7 +1982,10 @@ const animate = function animate () {
 
         if (zombieMouse.stateCounter <(zombieMouse.sequence.length)){
             cameraLerper.lerpTo(zombieMouseCamera, zombieMouseFocalPoint, false, function(){
-                zombieMouse.sequence[zombieMouse.stateCounter]();
+                currentlyPlaying = true;
+                zombieMouse.sequence[zombieMouse.stateCounter](function(){ 
+                    currentlyPlaying= false;
+                });
             });
 
         }else{
@@ -2122,6 +2066,7 @@ const animate = function animate () {
 
         })
 
+
     }
 
 
@@ -2132,7 +2077,11 @@ const animate = function animate () {
  
         if (spaceWitch.stateCounter <(spaceWitch.sequence.length)){
             cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint, false,function(){
-                spaceWitch.sequence[spaceWitch.stateCounter]();
+                currentlyPlaying = true;
+                spaceWitch.sequence[spaceWitch.stateCounter](function(){ 
+                    currentlyPlaying= false;
+                });
+                
             });
 
               
@@ -2152,7 +2101,10 @@ const animate = function animate () {
         
         if (cockroach.stateCounter <(cockroach.sequence.length)){
             cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint, false, function(){
-                cockroach.sequence[cockroach.stateCounter]();
+                currentlyPlaying = true;
+                cockroach.sequence[cockroach.stateCounter](function(){ 
+                    currentlyPlaying= false;
+                });
             })  
 
         } else {
@@ -2204,8 +2156,8 @@ const animate = function animate () {
     // spaceWitchPointClose.lookAt(vector5);
 
  
-    roachTextureAnimation.update(1000 * delta);
-    roachAlphaAnimation.update(1000 * delta);
+    roachBabies.textureAnimation.update(1000 * delta);
+    roachBabies.alphaAnimation.update(1000 * delta);
     if (cauldron.normalsAnimation){
         cauldron.normalsAnimation.update(1000 * delta);
     }
