@@ -111,7 +111,7 @@ let cauldron = {
     normalRampVector: new THREE.Vector2(1, 1),
     loadCauldronVideoTextures: function(envMap){
   
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 7; i++) {
             this.video[i] = document.getElementById(`cauldron-vid-${i}`);
             const videoTexture = new THREE.VideoTexture(this.video[i]);
             videoTexture.flipY = false;
@@ -938,7 +938,6 @@ function zombieMouseSequenceTwo(done){
 
 function zombieMouseSequenceThree(done){
     
-    currentlyPlaying = true;
     zombieMouse.sound.stop();
 
     zombieMouse.speech[2].play();
@@ -973,7 +972,6 @@ function initializeZombieMouseSequences(){
 
 
 function spaceWitchSequenceOne(done){
-    currentlyPlaying = true;
     // spaceWitch.sound.stop();
 
     spaceWitch.speech[0].play();
@@ -1010,7 +1008,6 @@ function spaceWitchSequenceOne(done){
 }
 
 function spaceWitchSequenceTwo(done){
-    currentlyPlaying = true;
     // spaceWitch.sound.stop();
 
     spaceWitch.speech[2].play();
@@ -1028,6 +1025,7 @@ function spaceWitchSequenceTwo(done){
         cauldron.mesh.material.envMap = envMap;
         cauldron.mesh.material.roughness = 0;
         cauldron.mesh.material.metalness = 0.2;
+    
 
         setTimeout(function (){
            
@@ -1103,11 +1101,93 @@ function spaceWitchSequenceThree(done){
 
 }
 
+function spaceWitchSequenceFour(done){
+    // During the accumulation, the land was expropriated and we were gathered together and cloven in two. 
+    // On the one side, were made the waged workers, alien and disconnected from the means of production. 
+    // video of space witch]On the other, we, who could produce these workers, we who cared for each other, we were set against one another, so that our power might be broken, so that we too would be accumulated, be controlled. 
+
+}
+function spaceWitchSequenceFive(done){
+    // spaceWitch.sound.stop();
+
+    spaceWitch.speech[5].play();
+    startCaptions('space-witch', 6);
+    
+    spaceWitch.speech[5].source.onended = (event) => {
+        console.log('space witch audio ended');
+        cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint);
+
+        setTimeout(function(){
+            cockroach.speech[6].play();
+            startCaptions('cockroach', 7);
+            cockroach.sound.stop();
+
+            console.log(projectionScreen.mesh.material);
+            console.log(projectionScreen.videoMaterial[6]);
+            projectionScreen.video[6].play();
+            projectionScreen.mesh.material = projectionScreen.videoMaterial[6];
+            console.log(projectionScreen.mesh.material);
+
+            setTimeout(function (){
+                cockroach.clickAnimationOne.stop();
+                cockroach.clickAnimationTwo.stop();
+                cockroach.clickAnimationOne.play();
+                cockroach.clickAnimationTwo.play();
+
+            },500);
+
+            setTimeout(function (){
+
+                currentCamera = projectionScreenCamera;
+
+            }, cockroach.clickAnimationTwo.getClip().duration*1000-4000)
+
+            cockroach.speech[6].source.onended = (event) =>{
+                console.log('audio over');
+                projectionScreen.mesh.material = projectionScreen.originalMaterial;
+                currentCamera = camera;
+    
+                cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint, true);
+                done();   
+            };
+
+        },2*1000);
+
+        const audioObject = document.getElementById( `cockroach-${7}`);
+        console.log(audioObject.duration);
+        console.log(cockroach.clickAnimationTwo.getClip().duration);
+    
+        setTimeout(function (){
+            cockroach.clickAnimationOne.stop();
+            cockroach.clickAnimationTwo.stop();
+            cockroach.clickAnimationOne.play();
+            cockroach.clickAnimationTwo.play();   
+    
+            console.log('timer')
+    
+        }, (audioObject.duration-cockroach.clickAnimationTwo.getClip().duration)*1000+6000)
+
+
+    }
+
+    cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint);
+
+
+    console.log(`space witch state counter is ${spaceWitch.stateCounter}`);
+    spaceWitch.stateCounter = spaceWitch.stateCounter + 1;
+
+}
+
 
 function initializespaceWitchSequences(){
     spaceWitch.sequence[0] = spaceWitchSequenceOne;
     spaceWitch.sequence[1] = spaceWitchSequenceTwo;
     spaceWitch.sequence[2] = spaceWitchSequenceThree;
+    spaceWitch.sequence[4] = spaceWitchSequenceFour;
+    spaceWitch.sequence[3] = spaceWitchSequenceFive;
+    //remember to set order
+
+
 
 }
 
@@ -1697,7 +1777,7 @@ function init(){
     }
 
 
-    for (let i = 0; i<6; i++){
+    for (let i = 0; i<7; i++){
         loadVideoTexture(i);
     }
     
@@ -1980,7 +2060,7 @@ const animate = function animate () {
 
         // currentCamera = zombieMouseCamera;
 
-        if (zombieMouse.stateCounter <(zombieMouse.sequence.length)){
+        if (zombieMouse.stateCounter <(zombieMouse.sequence.length)&& !currentlyPlaying){
             cameraLerper.lerpTo(zombieMouseCamera, zombieMouseFocalPoint, false, function(){
                 currentlyPlaying = true;
                 zombieMouse.sequence[zombieMouse.stateCounter](function(){ 
@@ -2075,7 +2155,7 @@ const animate = function animate () {
         console.log('space witch Intersection click', intersects[0].object.name)
         // currentCamera = spaceWitchCamera;
  
-        if (spaceWitch.stateCounter <(spaceWitch.sequence.length)){
+        if (spaceWitch.stateCounter <(spaceWitch.sequence.length)&& !currentlyPlaying){
             cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint, false,function(){
                 currentlyPlaying = true;
                 spaceWitch.sequence[spaceWitch.stateCounter](function(){ 
@@ -2099,7 +2179,7 @@ const animate = function animate () {
 
 
         
-        if (cockroach.stateCounter <(cockroach.sequence.length)){
+        if (cockroach.stateCounter <(cockroach.sequence.length)&& !currentlyPlaying){
             cameraLerper.lerpTo(cockroachCamera, cockroachFocalPoint, false, function(){
                 currentlyPlaying = true;
                 cockroach.sequence[cockroach.stateCounter](function(){ 

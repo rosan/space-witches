@@ -42,7 +42,7 @@ export function makeVideos(){
     
     spaceWitchSummonsVideo.load();
 
-    for (let i=0; i<6; i++){
+    for (let i=0; i<7; i++){
         const cockroachVidOne = document.createElement("video");
         cockroachVidOne.id = `cockroach-vid-${i}`;
         cockroachVidOne.className = 'invisible-video';
@@ -55,7 +55,7 @@ export function makeVideos(){
     }
 
     
-    for (let i=0; i<6; i++){
+    for (let i=0; i<7; i++){
         const cauldronVid = document.createElement("video");
         cauldronVid.id = `cauldron-vid-${i}`;
         cauldronVid.className = 'invisible-video';
