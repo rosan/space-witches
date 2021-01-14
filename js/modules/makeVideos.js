@@ -55,7 +55,7 @@ export function makeVideos(){
     }
 
     
-    for (let i=0; i<7; i++){
+    for (let i=0; i<9; i++){
         const cauldronVid = document.createElement("video");
         cauldronVid.id = `cauldron-vid-${i}`;
         cauldronVid.className = 'invisible-video';
@@ -64,17 +64,24 @@ export function makeVideos(){
         cauldronVidSource.setAttribute('src',`texture/cauldron/${i}.mp4`);
         cauldronVid.appendChild(cauldronVidSource);     
         cauldronVid.load();
+        
     }
 
-    for (let i=0; i<3; i++){
+    for (let i=0; i<5; i++){
         const spacWitchVid = document.createElement("video");
         spacWitchVid.id = `space-witch-vid-${i}`;
-        spacWitchVid.className = 'invisible-video';
         document.body.appendChild(spacWitchVid);
         const spacWitchVidSource = document.createElement('source');
         spacWitchVidSource.setAttribute('src',`texture/space-witch/${i}.mp4`);
         spacWitchVid.appendChild(spacWitchVidSource);     
         spacWitchVid.load();
+
+        const div =  document.createElement('div');
+        div.id = `space-witch-video-div-${i}`;
+        div.className = 'invisible-video';
+        div.appendChild(spacWitchVid);
+        document.body.appendChild(div);
+
     }
 
     for (let i=0; i<2; i++){
