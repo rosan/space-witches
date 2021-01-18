@@ -22,6 +22,8 @@ import {makeRoachBabies} from './modules/roachBabiesMaker.js';
 
 import {teeth} from './modules/teethLoader.js';
 
+import { trees } from './modules/trees.js';
+
 
 
 
@@ -153,7 +155,7 @@ let cauldron = {
     
                 this.video[i].addEventListener('ended', (event) =>{
                     console.log('cauldron video is done');
-                    if (this.playNext[i] || this.playNext[i]==0){
+                    if (this.playNext[i] !== false){
                         this.mesh.material = cauldron.videoMaterial[this.playNext[i]];
                         this.video[this.playNext[i]].play();
 
@@ -460,6 +462,7 @@ function loadCauldron (){
         teeth.load(function(){
             console.log('teeth-loaded');
         }); 
+
 
         let center = new THREE.Vector3(0,5,0);
 
@@ -1054,13 +1057,25 @@ function spaceWitchSequenceTwo(done){
             cauldron.video[5].play();
             cauldron.mesh.material.roughness = 1;
             cauldron.normalRamp = true;
+
+            setTimeout(function (){
+                scene.add(trees.points);
+                cameraLerper.lerpTo(initialCameraCube, cauldronFocalPoint, true);
+                setTimeout(function (){
+                    cameraLerper.lerpTo(cauldronCamera, cauldronFocalPoint);
+
+                },2*1000)
+
+            },6500)
+            
  
 
             setTimeout(function (){
-                cameraLerper.lerpTo(spaceWitchCamera, spaceWitchFocalPoint);
+                cameraLerper.lerpTo(initialCameraCube, cauldronFocalPoint, true);
 
                 setTimeout(function (){
                     cameraLerper.lerpTo(spaceWitchPointClose, spaceWitchFocalPointClose, true);
+                    scene.remove(tree.points);
 
                 },4000)
             },15*1000)
@@ -1300,12 +1315,12 @@ function spaceWitchSequenceSix(done){
 
 
 function initializespaceWitchSequences(){
-    spaceWitch.sequence[5] = spaceWitchSequenceOne;
+    spaceWitch.sequence[0] = spaceWitchSequenceOne;
     spaceWitch.sequence[1] = spaceWitchSequenceTwo;
     spaceWitch.sequence[2] = spaceWitchSequenceThree;
-    spaceWitch.sequence[4] = spaceWitchSequenceFour;
+    spaceWitch.sequence[5] = spaceWitchSequenceFour;
     spaceWitch.sequence[3] = spaceWitchSequenceFive;
-    spaceWitch.sequence[0] = spaceWitchSequenceSix;
+    spaceWitch.sequence[4] = spaceWitchSequenceSix;
 
     //remember to set order
 
@@ -1851,6 +1866,12 @@ function init(){
 
     initializeCockroachSequences();
 
+    trees.load(function(){
+        console.log('trees-loaded');
+
+    }); 
+    
+
     renderer.setClearColor(0xff6281);
     renderer.setClearAlpha(0);
 
@@ -2065,7 +2086,6 @@ function normalEnvMapRamp(intensity){
         cauldron.normalRampVector.y +=-0.2*delta*intensity;
         cauldron.mesh.material.normalScale = cauldron.normalRampVector;
         cauldron.mesh.material.roughness +=-0.2*delta;
-        console.log(cauldron.normalRampVector);
     }
     
     else{
@@ -2087,7 +2107,7 @@ const animate = function animate () {
     requestAnimationFrame(animate);
 
 
-    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene||!projectionScreen.gltfScene ){return;}
+    if(!zombieMouse.gltfScene||!spaceWitch.gltfScene||!cockroach.gltfScene||!projectionScreen.gltfScene||!trees.points ){return;}
 
 
 
